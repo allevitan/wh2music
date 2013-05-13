@@ -1,0 +1,1 @@
+A simple Flask web app designed to be run on a Raspberry Pi. It's goal is to allows users to upload music to the Pi and either use the Pi to play music directly. It is very much a work in progress.
