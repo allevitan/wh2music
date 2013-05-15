@@ -1,3 +1,7 @@
 *~
+*.pyc
 \#*#
+*.db
 venv
+music
+temp

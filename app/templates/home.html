@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Current Songs</h2>
+<ul class="artists">
+{% for song in songs %}
+<li><h4>{{ song.title }} by {{ song.artist.name }}</h4></li>
+{% endfor %}
+</ul>
+<h2>Add Song</h2>
+<form action="{{ url_for ('post_song') }}" method="post" class="post-song", enctype="multipart/form-data">
+  {{form.hidden_tag()}}
+  <dl>
+    <dt>Upload Song</dt>
+    <dd>{{form.song}}</dd>
+    <dd><input type="submit"></dd>
+  </dl>
+</form>
+{% endblock %}

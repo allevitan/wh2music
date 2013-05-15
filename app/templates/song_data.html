@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Update Song Data</h2>
+<form action="{{ url_for('confirm_song', filename=filename) }}" method="post" class="post-song", enctype="multipart/form-data">
+  {{form.hidden_tag()}}
+  <dl>
+    <dt>Artist</dt>
+    <dd>{{form.artist}}</dd>
+    <dt>Album</dt>
+    <dd>{{form.album}}</dd>
+    <dt>Song Title</dt>
+    <dd>{{form.song}}</dd>
+    <dd><input type="submit"></dd>
+  </dl>
+</form>
+{% endblock %}
