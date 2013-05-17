@@ -1,5 +1,9 @@
 from app import db
 
+class dud():
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
 class Artist(db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(128), index = True, unique = True)

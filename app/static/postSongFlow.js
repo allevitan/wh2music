@@ -6,7 +6,6 @@ function sendAndReplace(where){
 	data: data,
 	complete: function(){},
 	success: function(data){
-	    console.log(data);
 	    $('#uploadbox').html(data);
 	},
 	cache: false,

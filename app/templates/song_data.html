@@ -1,10 +1,14 @@
 <h4>Check that we got it all right...</h4>
-<form onSubmit="sendAndReplace('{{url_for('confirm_song', filename=filename)}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
+<form onSubmit="sendAndReplace('{{url_for('confirm_song', batch_name=batch_name)}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
   {{form.hidden_tag()}}
+  {% for upload in form.uploads %}
   <div class="row">
-    <div class="small-6 large-4 columns">Title: {{form.song}}</div>
-    <div class="small-6 large-4 columns">Album: {{form.album}}</div>
-    <div class="small-6 large-4 columns">Artist: {{form.artist}}</div>
+    {{upload.hidden_tag()}}
+    {{upload.filename}}
+    <div class="small-6 large-4 columns">Title: {{upload.song}}</div>
+    <div class="small-6 large-4 columns">Album: {{upload.album}}</div>
+    <div class="small-6 large-4 columns">Artist: {{upload.artist}}</div>
   </div>
+  {% endfor %}
   <input type="submit">
 </form>
