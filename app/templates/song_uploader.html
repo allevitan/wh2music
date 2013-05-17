@@ -1,0 +1,8 @@
+<form onSubmit="sendAndReplace('{{url_for('post_song')}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
+  {{form.hidden_tag()}}
+  <dl>
+    <dt>Upload Song</dt>
+    <dd>{{form.song}}</dd>
+    <dd><input type="submit"></dd>
+  </dl>
+</form>

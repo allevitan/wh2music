@@ -8,6 +8,8 @@
   <title>WH2Music</title>
   <link rel="stylesheet" href="/static/css/normalize.css"/>
   <link rel="stylesheet" href="/static/css/foundation.min.css"/>
+  {% block style %}
+  {% endblock %}
   <script src="/static/js/vendor/custom.modernizr.js"></script>
 </head>
 <body>
@@ -47,4 +49,6 @@
 	$(document).foundation();
     });
   </script>
+  {% block scripts %}
+  {% endblock %}
 </body>

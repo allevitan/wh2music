@@ -1,18 +1,16 @@
 {% extends "base.html" %}
+{% block scripts %}
+<script src="/static/postSongFlow.js"></script>
+{% endblock %}
 {% block content %}
 <h2>Current Songs</h2>
-<ul class="artists">
+<ul class="artists no-bullet">
 {% for song in songs %}
 <li><h4>{{ song.title }} by {{ song.artist.name }}</h4></li>
 {% endfor %}
 </ul>
-<h2>Add Song</h2>
-<form action="{{ url_for ('post_song') }}" method="post" class="post-song", enctype="multipart/form-data">
-  {{form.hidden_tag()}}
-  <dl>
-    <dt>Upload Song</dt>
-    <dd>{{form.song}}</dd>
-    <dd><input type="submit"></dd>
-  </dl>
-</form>
+<h2>Add a Song!</h2>
+<div id="uploadbox">
+  {% include "song_uploader.html" %}
+</div>
 {% endblock %}

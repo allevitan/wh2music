@@ -21,6 +21,7 @@ def get_song(filename):
 def post_song():
     form = PostSongForm()
     if not form.validate():
+        print 'invalid!'
         return redirect(url_for('home'))
     song = form.song.data
     filename = os.path.join(app.config['TEMP_DIR'],
@@ -59,7 +60,8 @@ def confirm_song(filename):
         extension = filename.split('.')[-1]
         if not os.path.exists(destination):
             os.makedirs(destination)
-        move(source, os.path.join(destination, secure_filename(song.title + extension)))
+        move(source, os.path.join(destination, secure_filename(song.title + '.' + extension)))
         db.session.commit()
-        
-    return redirect(url_for('home'))
+    
+    form = PostSongForm(formdata = None)
+    return render_template('song_uploader.html', form=form)
