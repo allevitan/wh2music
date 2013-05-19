@@ -1,0 +1,57 @@
+#music-player {
+    position:relative;
+    width:100%;
+
+    /* make unselectable */
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    
+    /*
+      Introduced in IE 10.
+      See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+      */
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#playlist {
+    width:100%
+}
+
+.music-bar {
+    position:relative;
+    width:100%;
+    padding:3px;
+    background-color:#FFFFFF;
+}
+
+.greyed {
+    background-color: #F0F0F0;
+    /*
+    background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#E8E8E8), to(#F5F5F5));
+    background-image: -webkit-linear-gradient(top, #E8E8E8, #F5F5F5); 
+    background-image:    -moz-linear-gradient(top, #E8E8E8, #F5F5F5);
+    background-image:     -ms-linear-gradient(top, #E8E8E8, #F5F5F5);
+    background-image:      -o-linear-gradient(top, #E8E8E8, #F5F5F5);
+    */
+}
+
+.music-bar.selected, .music-bar:hover {
+    border: solid 1px;
+    padding:2px;
+}
+
+.music-bar.selected {
+    background-color: #E0E0E0;
+}
+
+.music-bar div{
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.music-bar .faded{
+    padding-right:5px;
+}

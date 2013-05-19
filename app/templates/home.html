@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block scripts %}
-<script src="/static/postSongFlow.js"></script>
+<script src="/static/js/postSongFlow.js"></script>
+<script src="/static/js/musicPlayer.js"></script>
+{% endblock %}
+{% block style %}
+<link rel="stylesheet" href="/static/css/music-player.css"/>
 {% endblock %}
 {% block content %}
-<h2>Current Songs</h2>
-<ul class="artists no-bullet">
-{% for song in songs %}
-<li><h4>{{ song.title }} by {{ song.artist.name }}</h4></li>
-{% endfor %}
-</ul>
+{% include "music_player.html" %}
 <h2>Add a Song!</h2>
 <div id="uploadbox">
   {% include "song_uploader.html" %}

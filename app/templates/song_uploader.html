@@ -1,3 +1,19 @@
+{% if step == 'check' %}
+<h4>Check that we got it all right...</h4>
+<form onSubmit="sendAndReplace('{{url_for('confirm_song', batch_name=batch_name)}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
+  {{form.hidden_tag()}}
+  {% for upload in form.uploads %}
+  <div class="row">
+    {{upload.hidden_tag()}}
+    {{upload.filename}}
+    <div class="small-6 large-4 columns">Title: {{upload.song}}</div>
+    <div class="small-6 large-4 columns">Album: {{upload.album}}</div>
+    <div class="small-6 large-4 columns">Artist: {{upload.artist}}</div>
+  </div>
+  {% endfor %}
+  <input type="submit">
+</form>
+{% else %}
 <form onSubmit="sendAndReplace('{{url_for('post_song')}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
   {{form.hidden_tag()}}
   <dl>
@@ -6,3 +22,4 @@
     <dd><input type="submit"></dd>
   </dl>
 </form>
+{% endif %}

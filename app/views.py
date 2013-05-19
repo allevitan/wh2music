@@ -52,7 +52,7 @@ def post_song():
                                           artist = metadata.get('artist',''),
                                           filename = filename))
 
-    return render_template('song_data.html', batch_name=batch_name, form=confirm_form)
+    return render_template('song_uploader.html', batch_name=batch_name, form=confirm_form, step='check')
 
 
 @app.route('/confirm_song/<batch_name>', methods=['POST'])
