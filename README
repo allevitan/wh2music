@@ -1,1 +1,12 @@
-A simple Flask web app designed to be run on a Raspberry Pi. It's goal is to allows users to upload music to the Pi and either use the Pi to play music directly. It is very much a work in progress.
+A simple Flask web app designed to be run on a Raspberry Pi. It's goal is to allow users to upload music to the Pi and use the Pi to play music directly.
+
+It currently includes:
+Collaborative playlist management with socket.io! (Currently reductive...)
+A nice, ajax-based song uploading interface! (more metadata coming soon!)
+A next song button!
+A small built-in music library, including 4'33" by John Cage and many other masterpieces.
+
+Future commits will bring:
+The ability to add songs to the playlist!
+The ability to actually play music!
+Documentation!

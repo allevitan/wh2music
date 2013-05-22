@@ -60,14 +60,20 @@ $.fn.sortElements = (function(){
 
 $(document).ready(function(){
     window.ajaxLock = false;
-    window.lastUpdate = Date.now() / 1000
     sortable('.music-bar', '#playlist');
-    setInterval(updatePlaylist, 500);
+
+    window.updateSocket = io.connect('/updates/');
+    updateSocket.on('update', function(data) {
+	updatePlaylist(data);
+    });
+    updateSocket.on('current_data', function(html) {
+	updateCurrent(html);
+    });
     $("#music-player #next").click(function(){
-	$.ajax({url:'/next/'});
+	updateSocket.emit('next');
     });
     $('.del-button').mousedown(function(e){
-	deletify($(this).parent());
+	updateSocket.emit('delete', {who:$(this).parent().attr('pk')});
 	e.stopPropagation();
     });
 });
@@ -103,75 +109,65 @@ function sortable(sortableClass, sortBox){
 	    }
 	    $(sortBox).unbind('mousemove');
 	    $(document).unbind('mouseup');
-	    $.post('/update/', {type:'update',from:me.attr('pk'), to:me.attr('pos')})
-	    lastUpdate = Date.now() / 1000;
+	    updateSocket.emit('move', {from:me.attr('pk'), to:me.attr('pos')})
 	});
     });
 }
 
-function updatePlaylist(){
-    $.getJSON('/last_update/', function(data){
-	lastLocalChange = Date.now() / 1000 - lastUpdate;
-	//if the server saw a change more recently that me
-	if (data.latest < lastLocalChange)
-	    updatePlaylist();
-    });
-    
-    function updatePlaylist(){
-	$.getJSON('/playlist/', function(data){
-	    //first deal with the current song
-	    if ((data.current || $('#current-bar').attr('pk')) &&
-		parseInt($('#current-bar').attr('pk')) != data.current){
-		updateCurrent();
-	    }
-	    
-	    //then with the playlist
-	    var remote = data.playlist
-	    var finalSort = []
-	    for (i=0; i<data.playlist.length; i++){
-		finalSort[data.playlist[i]] = i
-	    }
-	    var local = getLocalPlaylist();
-	    var currentSort = [];
-	    for (i=0; i<local.length; i++){
-		currentSort[data.playlist[i]] = i
-	    }
-	    var movements = [];
-	    var deletions = [];
-	    var additions = [];
-	    for (i in local){
-		if (typeof finalSort[local[i]] == 'undefined')
-		    deletions.push(local[i])
-	    }
-	    for (i in remote){
-		if (typeof finalSort[local[i]] == 'undefined')
-		    additions.push(local[i])
-	    }
-	    //if local length < remote length, still valid
-	    //if remote length < local length, still valid
-	    for (i=0; i<remote.length; i++){
-		if (local[i] != remote[i]){
-		    movements[remote[i]] = i;
-		}
-	    }
-	    moveBars(movements, deletions, additions, finalSort);
-	});
-	lastUpdate = Date.now() / 1000
+function updatePlaylist(data){
+    if ((data.current || $('#current-bar').attr('pk')) &&
+	parseInt($('#current-bar').attr('pk')) != data.current){
+	updateSocket.emit('current_request');
     }
+    
+    function getLocalPlaylist(){
+	selection = $('#playlist').children('.music-bar')
+	pks = []
+	selection.each(function(){
+	    pks.push(parseInt($(this).attr('pk')))
+	});
+	return pks
+    }
+
+    //then with the playlist
+    var remote = data.playlist
+    var finalSort = []
+    for (i=0; i<data.playlist.length; i++){
+	finalSort[data.playlist[i]] = i
+    }
+    var local = getLocalPlaylist();
+    var currentSort = [];
+    for (i=0; i<local.length; i++){
+	currentSort[data.playlist[i]] = i
+    }
+    var movements = [];
+    var deletions = [];
+    var additions = [];
+    for (i in local){
+	if (typeof finalSort[local[i]] == 'undefined')
+	    deletions.push(local[i])
+    }
+    for (i in remote){
+	if (typeof finalSort[local[i]] == 'undefined')
+	    additions.push(local[i])
+    }
+    //if local length < remote length, still valid
+    //if remote length < local length, still valid
+    for (i=0; i<remote.length; i++){
+	if (local[i] != remote[i]){
+	    movements[remote[i]] = i;
+	}
+    }
+    moveBars(movements, deletions, additions, finalSort);
 }
 
-function updateCurrent(){
-    $.ajax({
-	url:'/current_song/',
-	success: function(data){
-	    $('#current-bar').animate({opacity:0}, {
-		duration: 250,
-		complete: function(){
-		    $(this).replaceWith(data)
-		    $('#current-bar').css({opacity:0})
-			.animate({opacity:1},250);
-		}
-	    });
+function updateCurrent(html){
+    $('#current-bar').animate({opacity:0}, {
+	duration: 250,
+	complete: function(){
+	    $(this).replaceWith(html)
+	    $('#current-bar').css({opacity:0})
+		.animate({opacity:1},250);
 	}
     });
 }
@@ -182,7 +178,6 @@ function moveBars(movements, deletions, additions, finalSort){
     plist = $('#playlist').children('.music-bar');
     function settle(){
 	for (i in deletions){
-	    console.log(deletions[i])
 	    plist.filter('[pk="' + deletions[i] + '"]').remove()
 	}
 	//refresh selector
@@ -241,16 +236,4 @@ function moveBars(movements, deletions, additions, finalSort){
     settle_once_done();
 }
 
-function deletify(selection){
-    $.post('/update/', {type:'del',del:selection.attr('pk')});
-    updatePlaylist();
-}
 
-function getLocalPlaylist(){
-    selection = $('#playlist').children('.music-bar')
-    pks = []
-    selection.each(function(){
-	pks.push(parseInt($(this).attr('pk')))
-    });
-    return pks
-}

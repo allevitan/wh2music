@@ -8,4 +8,4 @@ cache = SimpleCache()
 cache.default_timeout = 86400
 db = SQLAlchemy(app)
 
-import views, models, context_processors
+import views, sockets, models, context_processors

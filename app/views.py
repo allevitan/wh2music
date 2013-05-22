@@ -5,19 +5,12 @@ from shutil import move
 from werkzeug import secure_filename
 from werkzeug.wrappers import Response
 from random import random
-from time import time, sleep
 from forms import PostSongForm, SongDataForm, MultiSongDataForm
 from models import Artist, Album, Song, dud
+from sockets import UpdateNamespace
 from metadata import get_metadata
-
-def get_playlist():
-    current = cache.get('current')
-    playlist = cache.get('playlist')
-    if playlist == None:
-        playlist = [song.id for song in Song.query.all()]
-        cache.set('playlist', playlist)
-        #playlist = []
-    return current, playlist
+from cache import get_playlist, next_song
+from console import console #for shits and giggles
 
 @app.route('/')
 def home():
@@ -110,6 +103,7 @@ def confirm_song(batch_name):
     form = PostSongForm(formdata = None)
     return render_template('song_uploader.html', form=form, uploaded=True)
 
+
 @app.route('/play/')
 def play():
     #p.pause()
@@ -120,55 +114,10 @@ def pause():
     #p.pause()
     return Response(status=204)
 
+#a person-friendly shortcut
 @app.route('/next/')
 def next():
-    current, playlist = get_playlist()
-    cache.set('current',playlist.pop(0))
-    cache.set('playlist', playlist)
-    cache.set('latest', time())
-    return redirect(url_for('changes'))
-
-@app.route('/update/', methods=['GET','POST'])
-def update():
-    current, playlist = get_playlist()
-
-    if request.form['type'] == 'update':
-        to = request.form['to']
-        playlist.insert(int(request.form['to']),
-                        playlist.pop(playlist.index(int(request.form['from']))))
-        cache.set('playlist', playlist)
-    elif request.form['type'] == 'add':
-        cache.set('playlist', playlist + [int(request.form['add'])])
-    elif request.form['type'] == 'del':
-        playlist.pop(playlist.index(int(request.form['del'])))
-        cache.set('playlist', playlist)
-    else: abort(403);
-    cache.set('latest',time())
+    current, playlist = next_song()
+    UpdateNamespace.broadcast('update', {'current':current, 'playlist':playlist})
     return Response(status=204)
 
-@app.route('/last_update/')
-def last_update():
-    try:
-        latest = time() - cache.get('latest')
-    except:
-        cache.set('latest', time())
-        latest = time() - cache.get('latest')
-    return jsonify(latest=latest)
-
-@app.route('/playlist/')
-def changes():
-    current, playlist = get_playlist()
-    playlist = [Song.query.filter_by(id=pk).first() for pk in playlist]
-    playlist = [song.id for song in playlist]
-    return jsonify(current=current, playlist=playlist)
-
-@app.route('/music_bar/<pk>/')
-def music_bar(pk):
-    Song = Song.query.filter_by(id=pk).first()
-    return render_template('music_bar.html', song=song)
-
-@app.route('/current_song/')
-def current_song():
-    current, playlist = get_playlist()
-    current = Song.query.filter_by(id=current).first()
-    return render_template('current_bar.html', current=current)
