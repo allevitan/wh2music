@@ -1,0 +1,15 @@
+{% if current %}
+<h3 id="current-bar" pk="{{current.id}}">
+  {{current.title}} <small>by</small>
+  {{current.artist.name}} <small>on</small>
+  {{current.album.title}}
+</h3>
+{% else %}
+<h3 id="current-bar">
+  {{silence[0]}} <small>by</small> {{silence[1]}}
+</h3>
+<script>
+  setTimeout(function(){updateCurrent()},
+  {% if silence[2] %}{{silence[2] * 1000}}{% else %}60{% endif %});
+</script>
+{% endif %}

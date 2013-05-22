@@ -16,10 +16,11 @@
 {% else %}
 <form onSubmit="sendAndReplace('{{url_for('post_song')}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
   {{form.hidden_tag()}}
-  <dl>
-    <dt>Upload Song</dt>
-    <dd>{{form.song(multiple=True)}}</dd>
-    <dd><input type="submit"></dd>
-  </dl>
+  {% if uploaded %}
+  <h3>Thanks for Uploading! Upload Some More?</h3>
+  {% else %}
+  <h3>Upload Some Music!</h3>
+  {% endif %}
+  {{form.song(multiple=True, onchange="$(this).parents('form').submit()")}}
 </form>
 {% endif %}

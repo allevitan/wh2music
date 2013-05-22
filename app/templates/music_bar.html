@@ -1,0 +1,14 @@
+<div class="music-bar row {% if greyed %}greyed{% endif %}" pos="{{loop.index0}}" pk={{song.id}}>
+  <div class="del-button">&times</div>
+  <div class="title small-5 columns">
+    {{song.title}}
+  </div>
+  <div class="artist small-4 columns">
+    <small>by</small>
+    {{song.artist.name}}
+  </div>
+  <div class="album small-3 columns">
+    <small>on</small>
+    {{song.album.title}}
+  </div>
+</div>

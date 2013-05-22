@@ -15,6 +15,18 @@
     user-select: none;
 }
 
+/*#music-player h1{
+    float:left;
+}*/
+
+#music-player h1{
+    padding-top:0px;
+    margin-top:0px;
+}
+
+#controls {
+}
+
 #playlist {
     width:100%
 }
@@ -35,6 +47,28 @@
     background-image:     -ms-linear-gradient(top, #E8E8E8, #F5F5F5);
     background-image:      -o-linear-gradient(top, #E8E8E8, #F5F5F5);
     */
+}
+
+.del-button {
+    position:absolute;
+    top:0px;
+    right:0px;
+    z-index:10;
+    margin:0px;
+    padding:0px;
+    padding-right:3px;
+    cursor:default;
+    font-size:1.4em;
+    font-weight:200;
+    display:none;
+}
+
+.del-button:hover {
+    font-weight:900;
+}
+
+.music-bar.selected .del-button, .music-bar:hover .del-button{
+    display:block;
 }
 
 .music-bar.selected, .music-bar:hover {

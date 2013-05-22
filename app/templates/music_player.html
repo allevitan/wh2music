@@ -1,21 +1,27 @@
 <div id="music-player">
-<h3>Currently Playing</h3>
-<h4>Up Next</h4>
-<div id="playlist">
-{% for song in songs %}
-<div class="music-bar row {% if loop.index0 is even %}greyed{% endif %}" pos="{{loop.index0}}">
-  <div class="title small-4 columns">
-    {{song.title}}
+  <div class="row">
+    <div class="small-6 columns">
+    <h1>Currently Playing:</h1>
+    </div>
+    <div class="small-6 columns" id="controls">
+      <span id="back">
+	{% include 'icons/first.svg' %}
+      </span>
+      <span id="pause">
+	{% include 'icons/play.svg' %}
+      </span>
+      <span id="next">
+	{% include 'icons/last.svg' %}
+      </span>
+    </div>
   </div>
-  <div class="artist small-4 large-3 columns">
-    <span class="faded">by </span>
-    {{song.artist.name}}
+  {% include 'current_bar.html' %}
+  <h2>Up Next:</h2>
+  <div id="playlist">
+    {% for song in playlist %}
+    {% with greyed = loop.index0 % 2 == 0 %}
+    {% include 'music_bar.html' %}
+    {% endwith %}
+    {% endfor %}
   </div>
-  <div class="album small-4 large-3 columns">
-    <span class="faded">on </span>
-    {{song.album.title}}
-  </div>
-</div>
-{% endfor %}
-</div>
 </div>
