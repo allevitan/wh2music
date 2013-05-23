@@ -23,14 +23,6 @@
     padding-top:0px;
     margin-top:0px;
 }
-
-#controls {
-}
-
-#playlist {
-    width:100%
-}
-
 form {
     position: relative;
 }
@@ -55,6 +47,7 @@ ul.options {
 
 ul.options li{
     padding:3px;
+    cursor:default;
 }
 
 ul.options li.selected {
@@ -65,10 +58,111 @@ ul.options li.selected {
     display:block;
 }
 
-.music-bar {
+#player {
+    background-color:#E3E3E3;
+    height:85px;
+    position:relative;
+    margin-bottom:15px;
+}
+
+#controls {
+    position:absolute;
+    right:0px;
+    padding-right:10px;
+    padding-left:10px;
+    top:0px;
+    margin-top:25px;
+    background-color:inherit;
+    z-index:5;
+}
+
+#controls svg{
+    height:50px !important;
+    width:50px !important;
+}
+
+#controls svg *{
+    fill:#909090 !important;
+}
+
+#controls svg:hover *{
+    fill:#505050 !important;
+}
+
+#controls svg:active *{    
+    fill:#B0B0B0 !important;
+}
+
+#current-bar *{
+    overflow:hidden;
+    text-overflow:hidden;
+    white-space:nowrap;
+    width:100%;
+    padding-left:10px;
+}
+
+#current-bar .title{
+    position:absolute;
+    top:0px;
+}
+
+#current-bar .artist:before{
+    content:'by ';
+    color:#707070;
+    font-size:0.7em;
+}
+
+#current-bar .artist{
+    position:absolute;
+    top:28px;
+}
+
+#current-bar .album:before{
+    content:'on ';
+    color:#707070;
+    font-size:0.7em;
+}
+
+#current-bar .album{
+    position:absolute;
+    top:56px;
+}
+
+
+#playlist {
     position:relative;
     width:100%;
-    padding:3px;
+    height:20em;
+    overflow-y: scroll;
+    margin-right:-510px;
+    z-index:2;
+}
+
+.well {
+    position:relative;
+    overflow:hidden;
+    
+}
+
+.well:before {
+    pointer-events:none;
+    box-shadow: 0px 0px 10px #404040 inset;
+    z-index:3;
+    position:absolute;
+    content:'';
+    display:block;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+}
+
+.music-bar {
+    position:relative;
+    width:100% !important;
+    margin-left:0px !important;
+    padding:4px;
+    z-index:-10;
     background-color:#FFFFFF;
 }
 
@@ -107,7 +201,7 @@ ul.options li.selected {
 
 .music-bar.selected, .music-bar:hover {
     border: solid 1px;
-    padding:2px;
+    padding:3px;
 }
 
 .music-bar.selected {

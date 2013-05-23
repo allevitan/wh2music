@@ -38,7 +38,6 @@ class UpdateNamespace(BaseNamespace):
         self.broadcast('update', {'current':current, 'playlist':playlist})
 
     def on_add(self, data):
-        console.log(data)
         current, playlist = get_playlist()
         if int(data['who']) not in playlist + [current]:
             playlist = playlist + [int(data['who'])]

@@ -88,6 +88,7 @@ function deletable(deletable){
 }
 
 function searchable(searchable){
+    $('#results').click(function(){$(searchable).focus();});
     $(searchable).on('keypress', function(e){
 	$('#results').addClass('open')
 	query = $(searchable).attr('value');
@@ -151,6 +152,24 @@ function searchable(searchable){
     });
 }
 
+function selectable(selectable){
+    console.log(selectable);
+    selectable.on('mouseenter', function(){
+	selectable.removeClass('selected');
+	$(this).addClass('selected');    
+    });
+    $(document).on('click', function(){
+	$('#results').removeClass('open')
+    });
+    selectable.on('click', function(){
+	var me = $('#results .selected');
+	if (me)
+	    socket.emit('add',{who:parseInt(me.attr('pk'))});
+	$('#results').empty().removeClass('open')
+	$('#song-search').get(0).value = '';
+    });
+}
+
 function sortable(sortableClass, sortBox){
     $(sortableClass).off('mousedown').mousedown(function(e){
 	var me = $(this);
@@ -202,6 +221,7 @@ function refreshResults(results){
     if (results.length == 0){
 	box.append("<li>Nothing matches, sorry!</li>");	
     }
+    selectable($('#results').children());
 }
 
 function updatePlaylist(data){
