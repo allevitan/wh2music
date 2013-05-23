@@ -31,6 +31,40 @@
     width:100%
 }
 
+form {
+    position: relative;
+}
+
+#song-search {
+    position:relative;
+    z-index:4;
+}
+
+ul.options {
+    display:none;
+    position:absolute;
+    top:0px;
+    z-index:4;
+    background-color:white;
+    padding-top:33px;
+    width:100%;
+    border: solid grey 1px;
+    box-shadow: 0px 0px 5px #888888;
+    list-style-type:none;
+}
+
+ul.options li{
+    padding:3px;
+}
+
+ul.options li.selected {
+    background-color:#E0E0E0;
+}
+
+.options.open{
+    display:block;
+}
+
 .music-bar {
     position:relative;
     width:100%;

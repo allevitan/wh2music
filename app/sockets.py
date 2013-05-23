@@ -38,10 +38,14 @@ class UpdateNamespace(BaseNamespace):
         self.broadcast('update', {'current':current, 'playlist':playlist})
 
     def on_add(self, data):
+        console.log(data)
         current, playlist = get_playlist()
-        playlist = playlist + [int(data['who'])]
-        cache.set('playlist', playlist)
-        self.broadcast('update', {'current':current, 'playlist':playlist})
+        if int(data['who']) not in playlist + [current]:
+            playlist = playlist + [int(data['who'])]
+            cache.set('playlist', playlist)
+            self.broadcast('update', {'current':current, 'playlist':playlist})
+        else:
+            self.emit('error', 'That song is already on the playlist!')
 
     def on_current_request(self):
         current, playlist = get_playlist()
@@ -51,13 +55,22 @@ class UpdateNamespace(BaseNamespace):
         self.emit('current_data', render_template('current_bar.html', current=current))
         sketchy_ctx.pop()
     
-    def on_song_request(self, data):
-        Song = Song.query.filter_by(id=data['pk']).first()
+    def on_song_request(self, pk):
+        song = Song.query.filter_by(id=pk).first()
         sketchy_ctx = app.test_request_context()
         sketchy_ctx.push()
         self.emit('song_data', render_template('music_bar.html', song=song))
         sketchy_ctx.pop()
 
+    def on_match(self, data):
+        current, playlist = get_playlist()
+        playlist.append(current)
+        if data['what'] == 'song' or data['what'] == 'all':
+            songs = Song.query.filter(Song.title.ilike('%%%s%%' %data['query'])).limit(len(playlist) + 5).all()
+            songs = [(song.title, song.artist.name, song.id) for song in songs
+                     if song.id not in playlist]
+            self.emit('search_results', songs[:5])
+    
     #Broadcast to all sockets on this channel
     @classmethod
     def broadcast(self, event, data):

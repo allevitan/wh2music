@@ -7,9 +7,9 @@
 {% else %}
 <h3 id="current-bar">
   {{silence[0]}} <small>by</small> {{silence[1]}}
+  <script>
+    setTimeout(function(){socket.emit('current_request')},
+    {% if silence[2] %}{{silence[2] * 1000}}{% else %}60{% endif %});
+  </script>
 </h3>
-<script>
-  setTimeout(function(){updateSocket.emit('current_request')},
-  {% if silence[2] %}{{silence[2] * 1000}}{% else %}60{% endif %});
-</script>
 {% endif %}

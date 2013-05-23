@@ -13,7 +13,7 @@ silent_songs = [
     (u"9-11-01", u'Soulfly', 60),
     (u"Absolute Elsewhere", u'Coil', 4),
     (u"Anniversary Of World War III", u'The West Coast Pop Art Experimental Band', 97),
-    (u"Are We Here? (Criminal Justice Bill? Mix)", 'uOrbital', 240),
+    (u"Are We Here? (Criminal Justice Bill? Mix)", u'Orbital', 240),
     (u"The Ballad of Richard Nixon", u'John Denver', 11),
     (u"The Best of Marcel Marceau, Side 1", u'Michael Viner', 1140),
     (u"The Best of Marcel Marceau, Side 2", u'Michael Viner', 1140),
