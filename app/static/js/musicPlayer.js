@@ -75,10 +75,51 @@ $(document).ready(function(){
     socket.on('error', function(error) {
 	alert(error);
     });
+    socket.on('time', function(time) {
+	console.log('server update!');
+	updateTime('#time', time);
+    });
+    socket.on('play', function(){
+	startTiming('#time');
+    });
+    socket.on('pause', function(){
+	stopTiming();
+    });
     $("#music-player #next").click(function(){
 	socket.emit('next');
     });
+    startTiming('#time');
 });
+
+function startTiming(timeable){
+    playing = true;
+    $("#music-player #pause").off('click').click(function(){
+	socket.emit('pause');
+    });
+    timing = setInterval(function(){
+	var min = parseInt($(timeable).children(' #min').text()) * 60;
+	var sec = parseInt($(timeable).children('#sec').text());
+	if (isNaN(min) || isNaN(sec))
+	    return
+	var time = min + sec + 1;
+	updateTime(timeable, time);
+    }, 1000);
+}
+
+function stopTiming(){
+    playing = false;
+    $("#music-player #pause").off('click').click(function(){
+	socket.emit('play');
+    });
+    clearInterval(timing);
+}
+
+function updateTime(timeable, time){
+    $(timeable).children('#min').text(Math.floor(time/60));
+    sec = time % 60;
+    sec = sec < 10 ? '0' + sec : sec ;
+    $(timeable).children('#sec').text(sec);
+}
 
 function deletable(deletable){
     $(deletable + ' .del-button').off('mousedown').mousedown(function(e){
@@ -89,6 +130,8 @@ function deletable(deletable){
 
 function searchable(searchable){
     $('#results').click(function(){$(searchable).focus();});
+    $(searchable).click(function(){$('#results').addClass('open');
+				  return false;});
     $(searchable).on('keypress', function(e){
 	$('#results').addClass('open')
 	query = $(searchable).attr('value');
@@ -153,7 +196,6 @@ function searchable(searchable){
 }
 
 function selectable(selectable){
-    console.log(selectable);
     selectable.on('mouseenter', function(){
 	selectable.removeClass('selected');
 	$(this).addClass('selected');    
@@ -225,8 +267,8 @@ function refreshResults(results){
 }
 
 function updatePlaylist(data){
-    if ((data.current || $('#current-bar').attr('pk')) &&
-	parseInt($('#current-bar').attr('pk')) != data.current){
+    if ((data.current || $('#current').attr('pk')) &&
+	parseInt($('#current').attr('pk')) != data.current){
 	socket.emit('current_request');
     }
     
@@ -273,11 +315,11 @@ function updatePlaylist(data){
 }
 
 function updateCurrent(html){
-    $('#current-bar').animate({opacity:0}, {
+    $('#current').animate({opacity:0}, {
 	duration: 250,
 	complete: function(){
 	    $(this).replaceWith(html)
-	    $('#current-bar').css({opacity:0})
+	    $('#current').css({opacity:0})
 		.animate({opacity:1},250);
 	}
     });

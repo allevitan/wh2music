@@ -9,17 +9,19 @@ from forms import PostSongForm, SongDataForm, MultiSongDataForm
 from models import Artist, Album, Song, dud
 from sockets import UpdateNamespace
 from metadata import get_metadata
-from cache import get_playlist, next_song
+import music
 from console import console #for shits and giggles
+from pickle import dump, load
+from gevent import monkey, sleep
 
 @app.route('/')
 def home():
-    current, playlist = get_playlist()
+    current, playlist = music.get_playlist()
     playlist = [Song.query.filter_by(id=pk).first() for pk in playlist]
     current = Song.query.filter_by(id=current).first()
     form = PostSongForm()
     return render_template('home.html', form=form, current=current,
-                           playlist=playlist)
+                           playlist=playlist, played=cache.get('played'))
 
 @app.route('/music/<filename>')
 def get_song(filename):
@@ -53,6 +55,8 @@ def post_song():
 
         song.save(path)
         metadata = get_metadata(path)
+        with open(path.split('.')[0] + '.metadata', 'w') as mfile:
+            dump(metadata, mfile)
         #add the new row, using dud as an object with the wirght attributes
         confirm_form.uploads.append_entry(dud(song=metadata.get('title',''),
                                           album = metadata.get('album',''),
@@ -71,7 +75,6 @@ def confirm_song(batch_name):
         print 'invalid!'
         abort(403)
     for upload in form.uploads.data:
-        print upload
         artist = Artist.query.filter_by(name=upload['artist']).first()
         if not artist:
             artist = Artist(name=upload['artist'])
@@ -84,19 +87,26 @@ def confirm_song(batch_name):
         song = Song.query.filter(Song.title==upload['song'],
                                  Song.album==album,
                                  Song.artist==artist).first()
-        if not song:
-            song = Song(title=upload['song'], artist=artist, album=album)
-            db.session.add(song)
         source = os.path.join(app.config['TEMP_DIR'],
-                              batch_name, secure_filename(upload['filename']))
-        destination = os.path.join(app.config['MUSIC_DIR'],
-                               secure_filename(artist.name),
-                               secure_filename(album.title))
-        extension = upload['filename'].split('.')[-1]
-        if not os.path.exists(destination):
-            os.makedirs(destination)
-        move(source, os.path.join(destination, secure_filename(song.title + '.' + extension)))
-        db.session.commit()
+                              batch_name, secure_filename(upload['filename']))  
+        msource = source.split('.')[0] + '.metadata'
+        if song: 
+            os.remove(source)
+            os.remove(msource)
+        else:
+            with open(msource) as mfile:
+                metadata = load(mfile)
+            song = Song(title=upload['song'], artist=artist, album=album, length=metadata['length'], extension=metadata['extension'])
+            destination = music.get_path_from_song(song)
+            print destination
+            db.session.add(song)
+            outer_dir = '/'.join(destination.split('/')[:-1])
+            print outer_dir
+            if not os.path.exists(outer_dir):
+                os.makedirs(outer_dir)
+            move(source, destination)
+            os.remove(msource)
+            db.session.commit()
 
     os.rmdir(os.path.join(app.config['TEMP_DIR'],batch_name))
 
@@ -106,18 +116,17 @@ def confirm_song(batch_name):
 
 @app.route('/play/')
 def play():
-    #p.pause()
+    music.play()
     return Response(status=204)
 
 @app.route('/pause/')
 def pause():
-    #p.pause()
+    music.pause()
     return Response(status=204)
 
 #a person-friendly shortcut
 @app.route('/next/')
 def next():
-    current, playlist = next_song()
-    UpdateNamespace.broadcast('update', {'current':current, 'playlist':playlist})
+    music.next_song()
     return Response(status=204)
 

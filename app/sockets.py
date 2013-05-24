@@ -3,7 +3,8 @@ from flask import request, Response, render_template
 from socketio import socketio_manage
 from socketio.namespace import BaseNamespace
 from console import console #for shits and giggles
-from cache import get_playlist, next_song
+from music import get_playlist, next_song
+import music
 from models import Song
 
 class UpdateNamespace(BaseNamespace):
@@ -27,21 +28,27 @@ class UpdateNamespace(BaseNamespace):
         cache.set('playlist', playlist)
         self.broadcast('update', {'current':current, 'playlist':playlist})
     
+    def on_pause(self):
+        music.pause()
+        self.broadcast('pause')
+    
+    def on_play(self):
+        music.play()
+        self.broadcast('play')
+    
     def on_next(self):
-        current, playlist = next_song()
-        self.broadcast('update', {'current':current, 'playlist':playlist})
+        next_song()
     
     def on_delete(self, data):
         current, playlist = get_playlist()
         playlist.pop(playlist.index(int(data['who'])))
         cache.set('playlist', playlist)
         self.broadcast('update', {'current':current, 'playlist':playlist})
-
+        
     def on_add(self, data):
         current, playlist = get_playlist()
         if int(data['who']) not in playlist + [current]:
-            playlist = playlist + [int(data['who'])]
-            cache.set('playlist', playlist)
+            current, playlist = music.append_song_to_playlist(Song.query.filter_by(id=int(data['who'])).first())
             self.broadcast('update', {'current':current, 'playlist':playlist})
         else:
             self.emit('error', 'That song is already on the playlist!')
@@ -51,7 +58,7 @@ class UpdateNamespace(BaseNamespace):
         current = Song.query.filter_by(id=current).first()
         sketchy_ctx = app.test_request_context()
         sketchy_ctx.push()
-        self.emit('current_data', render_template('current_bar.html', current=current))
+        self.emit('current_data', render_template('current_bar.html', current=current, played=cache.get('played')))
         sketchy_ctx.pop()
     
     def on_song_request(self, pk):
@@ -72,9 +79,9 @@ class UpdateNamespace(BaseNamespace):
     
     #Broadcast to all sockets on this channel
     @classmethod
-    def broadcast(self, event, data):
+    def broadcast(self, event, *args):
         for ws in self.sockets.values():
-            ws.emit(event, data)
+            ws.emit(event, *args)
 
 @app.route('/socket.io/<path:rest>')
 def push_stream(rest):
@@ -84,5 +91,4 @@ def push_stream(rest):
         app.logger.error("Exception while handling socket.io connection",
                          exc_info=True)
     return Response('')
-
 

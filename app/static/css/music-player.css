@@ -38,7 +38,7 @@ ul.options {
     top:0px;
     z-index:4;
     background-color:white;
-    padding-top:33px;
+    padding-top:30px;
     width:100%;
     border: solid grey 1px;
     box-shadow: 0px 0px 5px #888888;
@@ -71,7 +71,7 @@ ul.options li.selected {
     padding-right:10px;
     padding-left:10px;
     top:0px;
-    margin-top:25px;
+    margin-top:10px;
     background-color:inherit;
     z-index:5;
 }
@@ -91,6 +91,13 @@ ul.options li.selected {
 
 #controls svg:active *{    
     fill:#B0B0B0 !important;
+}
+
+#time {
+    position:absolute;
+    bottom:0px;
+    right:3px;
+    z-index:10;
 }
 
 #current-bar *{

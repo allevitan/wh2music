@@ -11,7 +11,6 @@ monkey.patch_all()
 
 @run_with_reloader
 def run_dev_server():
-    app.debug = True
     port = 8000
     SocketIOServer(('', port), app, resource="socket.io").serve_forever()
 
