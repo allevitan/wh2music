@@ -21,8 +21,12 @@
     <span class="artist">{{silence[1]}}</span>
     <script>
       setTimeout(function(){socket.emit('current_request')},
-      {% if silence[2] %}{{silence[2] * 1000}}{% else %}60{% endif %});
+      {{silent_left * 1000}});
     </script>
   </h3>
+  <div id="time">
+    <span id="min">{{'%d'|format(silent_played/60)}}</span>:<span id="sec">{{'%02d'|format(silent_played%60)}}</span>
+    / <span id="final">{{'%d'|format(silence[2]/ 60)}}:{{'%02d'|format(silence[2]%60)}}</span>
+  </div>
 </div>
 {% endif %}

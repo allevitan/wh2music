@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from app import app
-from random import choice
+from time import time
 
 silent_songs = [
     (u'4\'33"', u'John Cage', 273),
@@ -48,6 +48,18 @@ silent_songs = [
     (u"Tunnel of Goats XVII", u'Coil', 25),
     (u"You Can Make Your Own Music", u'Covenant', 273)]
 
+total_length = sum([silent_song[2] for silent_song in silent_songs])
+
+    
+
 @app.context_processor
 def silence():
-    return {'silence':choice(silent_songs)}
+    time_since_reset = time()%total_length
+    i = -1
+    while time_since_reset > 0:
+        i += 1
+        time_since_reset -= silent_songs[i][2]
+    time_to_go = -time_since_reset
+    time_in = silent_songs[i][2] + time_since_reset
+    return {'silence':silent_songs[i], 'silent_played':time_in,
+            'silent_left':time_to_go}

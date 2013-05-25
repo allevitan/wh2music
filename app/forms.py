@@ -7,10 +7,10 @@ class MultiFileField(FileField):
         if formdata:
             self.data = formdata
 
-MUSIC_FILETYPES = ['mp3']
+MUSIC_FILETYPES = ['mp3', 'm4a', 'flac', 'aac', 'ac3']
 
 def validate_music(form, field):
-    if field.data.filename.split('.')[-1] not in MUSIC_FILETYPES:
+    if field.data.filename.split('.')[-1].lower() not in MUSIC_FILETYPES:
         raise ValidationError('Invalid filetype.')
 
 def validate_multi_music(form, multi_field):

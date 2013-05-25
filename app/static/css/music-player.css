@@ -50,6 +50,15 @@ ul.options li{
     cursor:default;
 }
 
+ul.options li.break {
+    font-size:0.7em;
+    background-color:#fff;
+    border-top:1px solid;
+    width:100%;
+    text-align:right;
+    margin-bottom:-2em;
+}
+
 ul.options li.selected {
     background-color:#E0E0E0;
 }

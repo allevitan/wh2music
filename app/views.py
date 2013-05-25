@@ -8,7 +8,6 @@ from random import random
 from forms import PostSongForm, SongDataForm, MultiSongDataForm
 from models import Artist, Album, Song, dud
 from sockets import UpdateNamespace
-from metadata import get_metadata
 import music
 from console import console #for shits and giggles
 from pickle import dump, load
@@ -21,7 +20,7 @@ def home():
     current = Song.query.filter_by(id=current).first()
     form = PostSongForm()
     return render_template('home.html', form=form, current=current,
-                           playlist=playlist, played=cache.get('played'))
+                           playlist=playlist, played=music.get_time())
 
 @app.route('/music/<filename>')
 def get_song(filename):
@@ -33,8 +32,8 @@ def post_song():
     the user, stores them in a temporary directory, and ask the user
     to confirm that the automatically pulled metadata is correct"""
 
+    #Get the files and validate the form
     files =  request.files.getlist('song')
-    #form = PostSongForm(MultiDict([('song',files[0])]))
     form = PostSongForm()
     if not form.validate():
         print 'invalid!'
@@ -46,19 +45,27 @@ def post_song():
         batch_name = str(int(random() * 10**16))
     os.makedirs(os.path.join(app.config['TEMP_DIR'], batch_name))
 
-    #Generate appropriate form with correct default data, one row per song
-    confirm_form = MultiSongDataForm()
+    #Actually save the songs in that directory
+    paths, filenames = [], []
     for song in form.song.data:
         filename = secure_filename(song.filename)
         path = os.path.join(app.config['TEMP_DIR'],
                                 batch_name, filename)
 
         song.save(path)
-        metadata = get_metadata(path)
+        paths.append(path)
+        filenames.append(song.filename)
+
+    #Now that they're saved, get the metadata
+    metadatas = music.get_metadata(paths, filenames)
+
+    #Generate an appropriate form using the metadata as defaults
+    confirm_form = MultiSongDataForm()
+    for metadata, filename, path in zip(metadatas, filenames, paths):
         with open(path.split('.')[0] + '.metadata', 'w') as mfile:
             dump(metadata, mfile)
         #add the new row, using dud as an object with the wirght attributes
-        confirm_form.uploads.append_entry(dud(song=metadata.get('title',''),
+            confirm_form.uploads.append_entry(dud(song=metadata.get('title',''),
                                           album = metadata.get('album',''),
                                           artist = metadata.get('artist',''),
                                           filename = filename))
@@ -98,7 +105,6 @@ def confirm_song(batch_name):
                 metadata = load(mfile)
             song = Song(title=upload['song'], artist=artist, album=album, length=metadata['length'], extension=metadata['extension'])
             destination = music.get_path_from_song(song)
-            print destination
             db.session.add(song)
             outer_dir = '/'.join(destination.split('/')[:-1])
             print outer_dir

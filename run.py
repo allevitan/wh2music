@@ -9,9 +9,8 @@ from socketio.server import SocketIOServer
 
 monkey.patch_all()
 
-@run_with_reloader
-def run_dev_server():
+def run_server():
     port = 8000
     SocketIOServer(('', port), app, resource="socket.io").serve_forever()
 
-run_dev_server()
+run_server()

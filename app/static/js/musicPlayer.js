@@ -145,7 +145,7 @@ function searchable(searchable){
 	query = query.slice(0,start)
 	    + String.fromCharCode(key)
 	    + query.slice(start);
-	socket.emit('match', {what:'song', query:query});
+	socket.emit('match', {what:'all', query:query});
     });
     $(searchable).on('keydown', function(e){
 	var key = e.which;
@@ -153,18 +153,22 @@ function searchable(searchable){
 	if (key == 13){
 	    var me = $('#results .selected');
 	    if (me)
-		socket.emit('add',{who:parseInt(me.attr('pk'))});
-	    $('#results').empty().removeClass('open')
-	    $(searchable).get(0).value = '';
+		sendSelection(me);
 	    return false;
 	}
 	if (key == 38){
 	    var me = $('#results .selected');
 	    var next = me.prev();
+	    while (next.hasClass('break')){
+		var next = next.prev();
+	    }
 	}
 	if (key == 40){
 	    var me = $('#results .selected');
 	    var next = me.next();
+	    while (next.hasClass('break')){
+		var next = next.next();
+	    }
 	}
 	if (next && next.length == 1){
 	    me.removeClass('selected');
@@ -191,7 +195,7 @@ function searchable(searchable){
 		    + query.slice(end + 1);
 	    }
 	}
-	socket.emit('match', {what:'song', query:query});	
+	socket.emit('match', {what:'all', query:query});	
     });
 }
 
@@ -206,9 +210,7 @@ function selectable(selectable){
     selectable.on('click', function(){
 	var me = $('#results .selected');
 	if (me)
-	    socket.emit('add',{who:parseInt(me.attr('pk'))});
-	$('#results').empty().removeClass('open')
-	$('#song-search').get(0).value = '';
+	    sendSelection(me);
     });
 }
 
@@ -248,22 +250,43 @@ function sortable(sortableClass, sortBox){
     });
 }
 
+function sendSelection(selection){
+    socket.emit('add',{who:parseInt(selection.attr('pk'))});
+    $('#results').empty().removeClass('open')
+    $('#song-search').get(0).value = '';
+}
+
 function refreshResults(results){
-    selected = $('#results .selected').attr('pk')
-    box = $('#results').empty()
-    for (i in results){
-	box.append('<li pk="' + results[i][2] + '">' + results[i][0] 
-		   + ' <small>by</small> ' + results[i][1] + '</li>');
+    selected = $('#results .selected').attr('pk');
+    box = $('#results').empty();
+    for (i in results.songs){
+	box.append('<li class="song" pk="' + results.songs[i][0] + '">' + 
+		   results.songs[i][1] + ' <small>by</small> ' +
+		   results.songs[i][2] + '</li>');
     }
-    selected = $('#results').children('[pk="' + selected + '"]')
+    if (results.artists.length)
+	box.append('<li class="break">Artists</li>');
+    for (i in results.artists){
+	box.append('<li class="artist" pk="' + results.artists[i][0] + '">' + 
+		   results.artists[i][1] + '</li>');
+    }
+    if (results.albums.length)
+	box.append('<li class="break">Albums</li>');
+    for (i in results.albums){
+	box.append('<li class="album" pk="' + results.albums[i][0] + '">' + 
+		   results.albums[i][1] + ' <small>by</small> ' +
+		   results.albums[i][2] + '</li>');
+    }
+    selected = $('#results').children('[pk="' + selected + '"]').first()
     if (!selected.length){
 	selected = $($('#results').children().get(0));
     }
     selected.addClass('selected');
-    if (results.length == 0){
+    if (results.songs.length + results.artists.length +
+	results.albums.length == 0){
 	box.append("<li>Nothing matches, sorry!</li>");	
     }
-    selectable($('#results').children());
+    selectable($('#results').children(':not(.break)'));
 }
 
 function updatePlaylist(data){

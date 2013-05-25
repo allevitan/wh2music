@@ -1,10 +1,45 @@
-from app import app, cache, player, sleeper
+from app import app, cache, player, metaplayer, db, sleeper
 from werkzeug import secure_filename
 from os.path import join
 from time import time
 from models import Song
 import sockets
 import gevent
+
+def get_metadata(filename_list, orig_filenames=None):
+    mdatas = []
+    tags = (('title','Title'),
+            ('artist','Artist'),
+            ('album','Album'),
+            ('track','Track'),
+            ('year','Year','date','Date'))
+    for i, filename in enumerate(filename_list):
+        mdata = {}
+        metaplayer.loadfile(filename)
+        metadata = metaplayer.metadata
+        if metadata == None:
+            mdata['none'] = True
+            try: filename = orig_filenames[i]
+            except: filename = metaplayer.filename
+            mdata['title'] = guess_song_title(filename)
+        else:
+            for tag_set in tags:
+                for tag in tag_set:
+                    if not mdata.get(tag_set[0]):
+                        mdata[tag_set[0]] = metadata.get(tag, '')
+        mdata['extension'] = filename.split('.')[-1].lower()
+        mdata['length'] = metaplayer.length
+        mdatas.append(mdata)
+    return mdatas
+
+def guess_song_title(filename):
+    first_pass = ' '.join(filename.split('.')[:-1]).replace('_',' ')
+    try:
+        track_num = int(first_pass.split(' ')[0])
+        title = ' '.join(first_pass.split(' ')[1:])
+    except:
+        title = first_pass
+    return title
 
 def get_path_from_song(song):
     path = join(app.config['MUSIC_DIR'],
@@ -20,7 +55,7 @@ def append_song_to_playlist(song):
         path = get_path_from_song(song)
         player.loadfile(path)
         current = song.id
-        sleeper = start_sleeper(song)
+        sleeper = start_sleeper(song.length)
     else:
         playlist = playlist + [song.id]
     cache.set('playlist', playlist)
@@ -43,9 +78,12 @@ def next_song():
     try:
         current = playlist.pop(0)
         song = Song.query.filter_by(id=current).first()
+        print song.plays
+        song.plays += 1
         path = get_path_from_song(song)
         player.loadfile(path)
-        sleeper = start_sleeper(song)
+        db.session.commit()
+        sleeper = start_sleeper(song.length)
     except:
         current = None;
         player.stop();
@@ -57,30 +95,23 @@ def next_song():
 
 def pause():
     if not player.paused:
-        cache.set('last_pause', time())
+        sleeper.kill()
         player.pause()
 
 def play():
+    global sleeper
     if player.paused:
-        last = cache.get('last_pause')
-        if last:
-            cache.inc('pause_time', time() - last)
+        sleeper = start_sleeper(player.length - player.time_pos)
         player.pause()
-
-#gevent timekeeping functions for keeping track of the music
 
 def sleep(sleep, action):
     gevent.sleep(sleep)
-    print 'sup'
     action()
-                
-def keep_time(t):
-    while True:
-        cache.set('played', player.time_pos)
-        gevent.sleep(t)
+    
+def get_time():
+    return player.time_pos
 
-def start_sleeper(song):
-    return gevent.spawn(sleep, song.length, next_song)
+def start_sleeper(length):
+    return gevent.spawn(sleep, length, next_song)
 
-timer = gevent.spawn(keep_time, 0.5)
 
