@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from app import app
 from time import time
+from console import console as c
 
 silent_songs = [
     (u'4\'33"', u'John Cage', 273),
@@ -63,3 +64,7 @@ def silence():
     time_in = silent_songs[i][2] + time_since_reset
     return {'silence':silent_songs[i], 'silent_played':time_in,
             'silent_left':time_to_go}
+
+@app.context_processor
+def console():
+    return {'console': c}

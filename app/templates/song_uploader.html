@@ -1,28 +1,27 @@
 <div id="uploadbox">
-  {% if step == 'check' %}
-  <h4>Check that we got it all right...</h4>
-  <form onSubmit="sendAndReplace('{{url_for('confirm_song', batch_name=batch_name)}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
-    {{form.hidden_tag()}}
+  {% if upload == 'album' %}
+  <h4>Check that we tagged it right...</h4>
+  <form onSubmit="sendConfirmData('{{url_for('confirm_album', batch_name=batch_name)}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
+    <div class="row">
+      {{form.hidden_tag()}}
+      <div class="small-5 columns">Album: {{form.album}}</div>
+      <div class="small-5 columns">Artist: {{form.artist}}</div>
+      <div class="small-2 columns"><input type="submit"></div>
+    </div>
     {% for upload in form.uploads %}
     <div class="row">
       {{upload.hidden_tag()}}
       {{upload.filename}}
-      <div class="small-6 large-4 columns">Title: <small>({{upload.filename.data}})</small> {{upload.song}}</div>
-      <div class="small-6 large-4 columns">Album: {{upload.album}}</div>
-      <div class="small-6 large-4 columns">Artist: {{upload.artist}}</div>
+      <div class="small-9 large-10 columns">Title: <small>({{upload.filename.data}})</small> {{upload.song}}</div>
+      <div class="small-3 large-2 columns">Track: {{upload.track}}</div>
     </div>
     {% endfor %}
-    <input type="submit">
   </form>
   {% else %}
-  <form onSubmit="sendAndReplace('{{url_for('post_song')}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
+  <form onSubmit="sendAndConfirm('{{url_for('post_album')}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
     {{form.hidden_tag()}}
-    {% if uploaded %}
-    <h3>Thanks for Uploading! Upload Some More?</h3>
-    {% else %}
-    <h3>Upload Some Music!</h3>
-    {% endif %}
-    {{form.song(multiple=True, onchange="$(this).parents('form').submit()")}}
+    <button onClick="$('#songs').click();return false;">Upload an Album!</button>
+    {{form.songs(multiple=True, hidden=True, onchange="$(this).parents('form').submit()")}}
   </form>
   {% endif %}
 </div>

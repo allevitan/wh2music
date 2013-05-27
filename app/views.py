@@ -5,7 +5,7 @@ from shutil import move
 from werkzeug import secure_filename
 from werkzeug.wrappers import Response
 from random import random
-from forms import PostSongForm, SongDataForm, MultiSongDataForm
+from forms import PostSongForm, PostAlbumForm, SongDataForm, AlbumDataForm
 from models import Artist, Album, Song, dud
 from sockets import UpdateNamespace
 import music
@@ -18,7 +18,7 @@ def home():
     current, playlist = music.get_playlist()
     playlist = [Song.query.filter_by(id=pk).first() for pk in playlist]
     current = Song.query.filter_by(id=current).first()
-    form = PostSongForm()
+    form = PostAlbumForm()
     return render_template('home.html', form=form, current=current,
                            playlist=playlist, played=music.get_time())
 
@@ -26,15 +26,14 @@ def home():
 def get_song(filename):
     return send_from_directory(app.config['MUSIC_DIR'], filename)
 
-@app.route('/post_song/', methods=['GET','POST'])
-def post_song():
-    """The frst step in uploading songs, it takes in files posted by
-    the user, stores them in a temporary directory, and ask the user
-    to confirm that the automatically pulled metadata is correct"""
+@app.route('/post_album/', methods=['GET','POST'])
+def post_album():
+    """Takes an album posted by the user, stores it in a temporary
+    directory, and ask the user to confirm that the automatically
+    pulled metadata is correct"""
 
-    #Get the files and validate the form
-    files =  request.files.getlist('song')
-    form = PostSongForm()
+    #validate the form
+    form = PostAlbumForm()
     if not form.validate():
         print 'invalid!'
         abort(403)
@@ -47,67 +46,72 @@ def post_song():
 
     #Actually save the songs in that directory
     paths, filenames = [], []
-    for song in form.song.data:
+    for song in form.songs.data:
         filename = secure_filename(song.filename)
         path = os.path.join(app.config['TEMP_DIR'],
                                 batch_name, filename)
-
         song.save(path)
         paths.append(path)
         filenames.append(song.filename)
 
     #Now that they're saved, get the metadata
     metadatas = music.get_metadata(paths, filenames)
-
+    album, artist = music.guess_album_and_artist(metadatas)
+    print'sup'
     #Generate an appropriate form using the metadata as defaults
-    confirm_form = MultiSongDataForm()
+    confirm_form = AlbumDataForm(formdata=None,album=album,artist=artist)
+    print 'dude'
     for metadata, filename, path in zip(metadatas, filenames, paths):
         with open(path.split('.')[0] + '.metadata', 'w') as mfile:
             dump(metadata, mfile)
-        #add the new row, using dud as an object with the wirght attributes
+            #add the new row, using dud as an object with the wirght attributes
             confirm_form.uploads.append_entry(dud(song=metadata.get('title',''),
-                                          album = metadata.get('album',''),
-                                          artist = metadata.get('artist',''),
+                                          track = metadata.get('track',''),
                                           filename = filename))
+            
+    return render_template('song_uploader.html', batch_name=batch_name, form=confirm_form, upload='album')
 
-    return render_template('song_uploader.html', batch_name=batch_name, form=confirm_form, step='check')
 
-
-@app.route('/confirm_song/<batch_name>', methods=['POST'])
-def confirm_song(batch_name):
+@app.route('/confirm_album/<batch_name>', methods=['GET','POST'])
+def confirm_album(batch_name):
     """The last step in uploading a song, it takes a form filled with song
     metadata and puts the music in the database"""
-    form = MultiSongDataForm(request.form)
+
+    #Package data into a form
+    form = AlbumDataForm(request.form)
     if not form.validate():
         print 'invalid!'
         abort(403)
+    #Process the album data
+    artist = Artist.query.filter_by(name=form.artist.data).first()
+    if not artist:
+        artist = Artist(name=form.artist.data)
+        db.session.add(artist)
+    
+    album = Album.query.filter(Album.title==form.album.data,
+                               Album.artist==artist).first()
+    if not album:
+        album = Album(title=form.album.data, artist=artist)
+        db.session.add(album)
+    #Process the data for each song and save the songs
     for upload in form.uploads.data:
-        artist = Artist.query.filter_by(name=upload['artist']).first()
-        if not artist:
-            artist = Artist(name=upload['artist'])
-            db.session.add(artist)
-        album = Album.query.filter(Album.title==upload['album'],
-                                   Album.artist==artist).first()
-        if not album:
-            album = Album(title=upload['album'], artist=artist)
-            db.session.add(album)
-        song = Song.query.filter(Song.title==upload['song'],
-                                 Song.album==album,
-                                 Song.artist==artist).first()
+        print upload
         source = os.path.join(app.config['TEMP_DIR'],
                               batch_name, secure_filename(upload['filename']))  
         msource = source.split('.')[0] + '.metadata'
+        song = Song.query.filter(Song.title==upload['song'],
+                                 Song.album==album,
+                                 Song.artist==artist).first()
         if song: 
             os.remove(source)
             os.remove(msource)
         else:
             with open(msource) as mfile:
                 metadata = load(mfile)
-            song = Song(title=upload['song'], artist=artist, album=album, length=metadata['length'], extension=metadata['extension'])
+            song = Song(title=upload['song'], artist=artist, album=album, length=metadata['length'], extension=metadata['extension'], track=upload['track'])
             destination = music.get_path_from_song(song)
             db.session.add(song)
             outer_dir = '/'.join(destination.split('/')[:-1])
-            print outer_dir
             if not os.path.exists(outer_dir):
                 os.makedirs(outer_dir)
             move(source, destination)
@@ -116,8 +120,9 @@ def confirm_song(batch_name):
 
     os.rmdir(os.path.join(app.config['TEMP_DIR'],batch_name))
 
-    form = PostSongForm(formdata = None)
-    return render_template('song_uploader.html', form=form, uploaded=True)
+    form = PostAlbumForm(formdata=None)
+    print 'sup'
+    return render_template('song_uploader.html', form=form, uploaded=True, upload='None')
 
 
 @app.route('/play/')

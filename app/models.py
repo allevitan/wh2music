@@ -30,6 +30,7 @@ class Song(db.Model):
     extension = db.Column(db.String(5))
     length = db.Column(db.Float)
     plays = db.Column(db.Integer, default=0)
+    track = db.Column(db.Integer)
     def __repr__(self):
         return '<Song %r by %r (%d:%d)>' %(self.title, self.artist.name,
                                            int(self.length / 60), 

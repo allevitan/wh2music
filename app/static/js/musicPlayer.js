@@ -251,7 +251,8 @@ function sortable(sortableClass, sortBox){
 }
 
 function sendSelection(selection){
-    socket.emit('add',{who:parseInt(selection.attr('pk'))});
+    if (!selection.hasClass('back'))
+	socket.emit('add',{who:parseInt(selection.attr('pk'))});
     $('#results').empty().removeClass('open')
     $('#song-search').get(0).value = '';
 }
@@ -259,6 +260,8 @@ function sendSelection(selection){
 function refreshResults(results){
     selected = $('#results .selected').attr('pk');
     box = $('#results').empty();
+    if (results.songs.length)
+	box.append('<li class="break">Songs</li>');
     for (i in results.songs){
 	box.append('<li class="song" pk="' + results.songs[i][0] + '">' + 
 		   results.songs[i][1] + ' <small>by</small> ' +
@@ -277,15 +280,12 @@ function refreshResults(results){
 		   results.albums[i][1] + ' <small>by</small> ' +
 		   results.albums[i][2] + '</li>');
     }
+    box.append('<li class="back">Back to Playlist</li>')
     selected = $('#results').children('[pk="' + selected + '"]').first()
     if (!selected.length){
-	selected = $($('#results').children().get(0));
+	selected = $($('#results').children(':not(.break)').get(0));
     }
     selected.addClass('selected');
-    if (results.songs.length + results.artists.length +
-	results.albums.length == 0){
-	box.append("<li>Nothing matches, sorry!</li>");	
-    }
     selectable($('#results').children(':not(.break)'));
 }
 

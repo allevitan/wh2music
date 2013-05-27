@@ -5,3 +5,14 @@
 ::-webkit-scrollbar {
     width:0px;
 }
+
+button, input[type="submit"] {
+    padding:5px;
+    background-color:#777777;
+    border:solid black 1px;
+    box-shadow: 0 0 0;
+}
+
+button:hover, input[type="submit"]:hover {
+    background-color:#AAAAAA;
+}

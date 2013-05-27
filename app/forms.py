@@ -1,4 +1,4 @@
-from flask.ext.wtf import Form, TextField, FileField, FieldList, FormField
+from flask.ext.wtf import Form, TextField, FileField, FieldList, FormField, IntegerField
 from flask.ext.wtf import Required, ValidationError
 from wtforms.widgets import HiddenInput
 
@@ -19,7 +19,10 @@ def validate_multi_music(form, multi_field):
             raise ValidationError('One or more songs has an invalid filetype')
 
 class PostSongForm(Form):
-    song = MultiFileField('song', validators = [Required(), validate_multi_music])
+    song = FileField('song', validators = [Required(), validate_music]) 
+
+class PostAlbumForm(Form):
+    songs = MultiFileField('songs', validators = [Required(), validate_multi_music])
 
 class SongDataForm(Form):
     filename = TextField('filename', validators = [Required()], widget=HiddenInput())
@@ -27,5 +30,12 @@ class SongDataForm(Form):
     album = TextField('album', validators = [Required()])
     song = TextField('song', validators = [Required()])
 
-class MultiSongDataForm(Form):
-    uploads = FieldList(FormField(SongDataForm))
+class AlbumSongDataForm(Form):
+    filename = TextField('filename', validators = [Required()], widget=HiddenInput())
+    song = TextField('song', validators = [Required()])
+    track = IntegerField('track')
+    
+class AlbumDataForm(Form):
+    artist = TextField('artist', validators = [Required()])
+    album = TextField('album', validators = [Required()])
+    uploads = FieldList(FormField(AlbumSongDataForm))

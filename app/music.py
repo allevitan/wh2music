@@ -21,7 +21,7 @@ def get_metadata(filename_list, orig_filenames=None):
             mdata['none'] = True
             try: filename = orig_filenames[i]
             except: filename = metaplayer.filename
-            mdata['title'] = guess_song_title(filename)
+            mdata['track'], mdata['title'] = guess_song_title(filename)
         else:
             for tag_set in tags:
                 for tag in tag_set:
@@ -38,8 +38,22 @@ def guess_song_title(filename):
         track_num = int(first_pass.split(' ')[0])
         title = ' '.join(first_pass.split(' ')[1:])
     except:
+        track_num = None
         title = first_pass
-    return title
+    return track_num, title
+
+def guess_album_and_artist(metadatas):
+    albums, artists = {}, {}
+    for metadata in metadatas:
+        album = metadata.get('album','')
+        artist = metadata.get('artist','')
+        albums[album] = albums.get(album, 0) + 1
+        artists[artist] = artists.get(artist, 0) + 1
+    if albums: album = max(albums)
+    else: album = ''
+    if artists: artist = max(artists)
+    else: artist = ''
+    return album, artist
 
 def get_path_from_song(song):
     path = join(app.config['MUSIC_DIR'],

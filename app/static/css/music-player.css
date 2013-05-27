@@ -36,12 +36,9 @@ ul.options {
     display:none;
     position:absolute;
     top:0px;
-    z-index:4;
+    z-index:2;
     background-color:white;
-    padding-top:30px;
     width:100%;
-    border: solid grey 1px;
-    box-shadow: 0px 0px 5px #888888;
     list-style-type:none;
 }
 
@@ -145,19 +142,9 @@ ul.options li.selected {
 }
 
 
-#playlist {
-    position:relative;
-    width:100%;
-    height:20em;
-    overflow-y: scroll;
-    margin-right:-510px;
-    z-index:2;
-}
-
 .well {
     position:relative;
     overflow:hidden;
-    
 }
 
 .well:before {
@@ -171,6 +158,18 @@ ul.options li.selected {
     left:0;
     width:100%;
     height:100%;
+}
+
+.well > * {
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow-y: scroll;
+    z-index:2;
+}
+
+.well#main {
+    height:300px;
 }
 
 .music-bar {

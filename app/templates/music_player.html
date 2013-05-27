@@ -14,10 +14,9 @@
     {% include 'current_bar.html' %}
   </div>
   <form onSubmit="return false;">
-    <ul id="results" class="options"></ul>
     <input type="text" id="song-search" placeholder="Add a song to the playlist!"></input>
   </form>
-  <div class="well">
+  <div class="well" id="main">
     <div id="playlist">
       {% for song in playlist %}
       {% with greyed = loop.index0 % 2 == 0 %}
@@ -25,6 +24,7 @@
       {% endwith %}
       {% endfor %}
     </div>
+    <ul id="results" class="options"></ul>
   </div>
   <br>
 </div>

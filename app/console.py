@@ -4,5 +4,7 @@ class console(object):
     @classmethod
     def log(self, *args):
         print(*args)
+        return '' #So templates don't print it
+
 
 
