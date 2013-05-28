@@ -130,8 +130,11 @@ function deletable(deletable){
 
 function searchable(searchable){
     $('#results').click(function(){$(searchable).focus();});
-    $(searchable).click(function(){$('#results').addClass('open');
-				  return false;});
+    $(searchable).click(function(){
+	if ($(searchable).attr('value')){
+	    $('#results').addClass('open');
+	}
+	return false;});
     $(searchable).on('keypress', function(e){
 	$('#results').addClass('open')
 	query = $(searchable).attr('value');

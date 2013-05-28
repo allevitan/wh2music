@@ -4,9 +4,8 @@
   <form onSubmit="sendConfirmData('{{url_for('confirm_album', batch_name=batch_name)}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
     <div class="row">
       {{form.hidden_tag()}}
-      <div class="small-5 columns">Album: {{form.album}}</div>
-      <div class="small-5 columns">Artist: {{form.artist}}</div>
-      <div class="small-2 columns"><input type="submit"></div>
+      <div class="small-6 columns">Album: {{form.album}}</div>
+      <div class="small-6 columns">Artist: {{form.artist}}</div>
     </div>
     {% for upload in form.uploads %}
     <div class="row">
@@ -16,11 +15,23 @@
       <div class="small-3 large-2 columns">Track: {{upload.track}}</div>
     </div>
     {% endfor %}
+    <div class="row">
+      <div class="small-12 columns">
+	<input type="submit" style="width:100%;">
+      </div>
+    </div>
   </form>
   {% else %}
   <form onSubmit="sendAndConfirm('{{url_for('post_album')}}');return false;" method="post" class="post-song", enctype="multipart/form-data">
     {{form.hidden_tag()}}
-    <button onClick="$('#songs').click();return false;">Upload an Album!</button>
+    <div class="row" id="uploads">
+      <div class="small-6 columns">
+	<button id="post-album" onClick="$('#songs').click();return false;">Upload an Album!</button>
+      </div>
+      <div class="small-6 columns">
+	<button id="post-song" onClick="return false;">Upload a Song!</button>
+      </div>
+    </div>
     {{form.songs(multiple=True, hidden=True, onchange="$(this).parents('form').submit()")}}
   </form>
   {% endif %}

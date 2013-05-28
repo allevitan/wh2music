@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from app import app
+from app import console as c
 from time import time
-from console import console as c
 
 silent_songs = [
     (u'4\'33"', u'John Cage', 273),

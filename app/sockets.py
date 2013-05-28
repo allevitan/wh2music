@@ -1,8 +1,7 @@
-from app import app, cache
+from app import app, cache, console
 from flask import request, Response, render_template
 from socketio import socketio_manage
 from socketio.namespace import BaseNamespace
-from console import console #for shits and giggles
 from music import get_playlist, next_song
 import music
 from models import Song, Artist, Album
@@ -75,7 +74,8 @@ class UpdateNamespace(BaseNamespace):
         if data['what'] == 'song' or data['what'] == 'all':
             songs = Song.query.filter(Song.title.ilike('%%%s%%' %data['query']))
             exclusion = Song.query.filter(Song.id.in_(playlist))
-            songs = songs.except_(exclusion).limit(5).all()
+            songs = songs.except_(exclusion).order_by(Song.plays.desc())\
+                .limit(5).all()
             songs = [(song.id, song.title, song.artist.name) for song in songs]
             response['songs'] = songs
 

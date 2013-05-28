@@ -56,6 +56,11 @@ ul.options li.break {
     margin-bottom:-2em;
 }
 
+ul.options li.back{
+    border-top:1px solid;
+    padding-left:25px;
+}
+
 ul.options li.selected {
     background-color:#E0E0E0;
 }

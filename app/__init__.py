@@ -2,6 +2,7 @@ from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from werkzeug.contrib.cache import SimpleCache
 from mplayer import Player, CmdPrefix
+from consoles import Console
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -11,6 +12,7 @@ player = Player()
 metaplayer = Player(args=('-af','volume=-200:1'))
 metaplayer.cmd_prefix = CmdPrefix.PAUSING
 db = SQLAlchemy(app)
+console = Console()
 sleeper = None
 
 import views, sockets, models, music, context_processors

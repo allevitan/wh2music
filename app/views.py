@@ -1,4 +1,4 @@
-from app import app, db, cache
+from app import app, db, cache, console
 from flask import render_template, redirect, url_for, request, send_from_directory, abort, jsonify
 import os
 from shutil import move
@@ -9,7 +9,6 @@ from forms import PostSongForm, PostAlbumForm, SongDataForm, AlbumDataForm
 from models import Artist, Album, Song, dud
 from sockets import UpdateNamespace
 import music
-from console import console #for shits and giggles
 from pickle import dump, load
 from gevent import monkey, sleep
 
@@ -57,10 +56,8 @@ def post_album():
     #Now that they're saved, get the metadata
     metadatas = music.get_metadata(paths, filenames)
     album, artist = music.guess_album_and_artist(metadatas)
-    print'sup'
     #Generate an appropriate form using the metadata as defaults
     confirm_form = AlbumDataForm(formdata=None,album=album,artist=artist)
-    print 'dude'
     for metadata, filename, path in zip(metadatas, filenames, paths):
         with open(path.split('.')[0] + '.metadata', 'w') as mfile:
             dump(metadata, mfile)
@@ -83,19 +80,18 @@ def confirm_album(batch_name):
         print 'invalid!'
         abort(403)
     #Process the album data
-    artist = Artist.query.filter_by(name=form.artist.data).first()
+    artist = Artist.query.filter_by(name=form.artist.data.title()).first()
     if not artist:
-        artist = Artist(name=form.artist.data)
+        artist = Artist(name=form.artist.data.title())
         db.session.add(artist)
     
-    album = Album.query.filter(Album.title==form.album.data,
+    album = Album.query.filter(Album.title==form.album.data.title(),
                                Album.artist==artist).first()
     if not album:
-        album = Album(title=form.album.data, artist=artist)
+        album = Album(title=form.album.data.title(), artist=artist)
         db.session.add(album)
     #Process the data for each song and save the songs
     for upload in form.uploads.data:
-        print upload
         source = os.path.join(app.config['TEMP_DIR'],
                               batch_name, secure_filename(upload['filename']))  
         msource = source.split('.')[0] + '.metadata'
@@ -121,7 +117,6 @@ def confirm_album(batch_name):
     os.rmdir(os.path.join(app.config['TEMP_DIR'],batch_name))
 
     form = PostAlbumForm(formdata=None)
-    print 'sup'
     return render_template('song_uploader.html', form=form, uploaded=True, upload='None')
 
 

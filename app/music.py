@@ -17,17 +17,26 @@ def get_metadata(filename_list, orig_filenames=None):
         mdata = {}
         metaplayer.loadfile(filename)
         metadata = metaplayer.metadata
+        try: name = orig_filenames[i]
+        except: name = metaplayer.filename
         if metadata == None:
             mdata['none'] = True
-            try: filename = orig_filenames[i]
-            except: filename = metaplayer.filename
-            mdata['track'], mdata['title'] = guess_song_title(filename)
         else:
             for tag_set in tags:
                 for tag in tag_set:
                     if not mdata.get(tag_set[0]):
                         mdata[tag_set[0]] = metadata.get(tag, '')
-        mdata['extension'] = filename.split('.')[-1].lower()
+        guess_track, guess_title = guess_song_title(name)
+        if not mdata.get('title',''): mdata['title'] = guess_title
+        if not mdata.get('track',''): mdata['track'] = guess_track
+        if type(mdata['track']) == type(u'') or \
+                type(mdata['track']) == type(''):
+            mdata['track'] = mdata['track'].split('/')[0]
+        try:
+            mdata['track'] = int(mdata['track'])
+        except ValueError: pass
+        except TypeError: mdata['track'] = ''
+        mdata['extension'] = name.split('.')[-1].lower()
         mdata['length'] = metaplayer.length
         mdatas.append(mdata)
     return mdatas
