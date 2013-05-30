@@ -95,25 +95,29 @@ class UpdateNamespace(BaseNamespace):
             albums = [(album.id, album.title, album.artist.name) for album  in albums]
             response['albums'] = albums
 
-        if data['what'] == 'song_by_artist':
+        if data['what'] == 'by_artist':
             artist = data.get('artist','').strip(' ')
             songs = Song.query.join(Artist).filter(Artist.name.ilike(artist))\
                         .filter(Song.title.ilike('%%%s%%' %data['query']))
             exclusion = Song.query.filter(Song.id.in_(playlist))
             songs = songs.except_(exclusion).order_by(Song.plays.desc()).all()
             songs = [(song.id, song.title, song.artist.name) for song in songs]
-            print songs
             response['songs'] = songs
+
+            albums = Album.query.join(Artist).filter(Artist.name.ilike(artist))\
+                        .filter(Album.title.ilike('%%%s%%' %data['query']))
+            albums = [(album.id, album.title, album.artist.name) for album in albums]
+            response['albums'] = albums
         
-        if data['what'] == 'song_by_album':
+
+        if data['what'] == 'by_album':
             album = data.get('album','').strip(' ')
             songs = Song.query.join(Album).filter(Album.title.ilike(album))\
                         .filter(Song.title.ilike('%%%s%%' %data['query']))
             exclusion = Song.query.filter(Song.id.in_(playlist))
-            songs = songs.except_(exclusion).order_by(Song.plays.desc()).all()
+            songs = songs.except_(exclusion).order_by(Song.track).all()
             songs = [(song.id, song.title, song.artist.name) for song in songs]
             response['songs'] = songs
-        print response
         self.emit('search_results', response)
     
     #Broadcast to all sockets on this channel

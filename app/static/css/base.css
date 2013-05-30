@@ -19,10 +19,17 @@ button:hover, input[type="submit"]:hover {
 
 #post-album, #post-song {
     width:100%;
+    margin-bottom:0px;
+}
+
+#uploads{
+    padding-bottom:0px;
 }
 
 #upload {
     margin-top:0px;
+    margin-bottom:0px;
+    padding-bottom:0px;
     border: solid 1px;
     width:100%;
     height:1.8em;

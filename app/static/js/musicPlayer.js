@@ -58,10 +58,13 @@ $.fn.sortElements = (function(){
  
 })();
 
+$(window).resize(fillScreen);
+
 $(document).ready(function(){
     sortable('.music-bar', '#playlist');
     deletable('.music-bar');
     searchable('#song-search');
+    fillScreen();
     $(document).on('keydown', volumize);
     window.socket = io.connect('/updates/');
     socket.on('update', function(data) {
@@ -220,15 +223,15 @@ function sendQuery(query){
     var artist_match = artist_reg.exec(query)
     var album_reg = /album:[^\|]*/i
     var album_match = album_reg.exec(query)
-    if (artist_match){
+    if (artist_match && !album_match){
 	var artist = artist_match[0].split(':').slice(1).join(':')
 	var query = query.replace(artist_reg, '').replace(/\|\s*/,'')
-	socket.emit('match', {what:'song_by_artist', query:query, artist:artist});
+	socket.emit('match', {what:'by_artist', query:query, artist:artist});
     }
     if (album_match){
 	var album = album_match[0].split(':').slice(1).join(':')
 	var query = query.replace(album_reg, '').replace(/\|\s*/,'')
-	socket.emit('match', {what:'song_by_album', query:query, album:album});
+	socket.emit('match', {what:'by_album', query:query, album:album});
     }
     if (!(artist_match || album_match)) {
 	socket.emit('match', {what:'all', query:query});
@@ -243,10 +246,11 @@ function selectable(selectable){
     $(document).on('click', function(){
 	$('#results').removeClass('open')
     });
-    selectable.on('click', function(){
+    selectable.on('click', function(e){
 	var me = $('#results .selected');
-	if (me)
-	    sendSelection(me);
+	if (me){
+	    return sendSelection(me);
+	}  
     });
 }
 
@@ -291,14 +295,17 @@ function sendSelection(selection){
 	socket.emit('add',{who:parseInt(selection.attr('pk'))});
 	$('#results').empty().removeClass('open')
 	$('#song-search').get(0).value = '';
-	return
+	return true
     } else if (selection.hasClass('album')){
 	searchTerm = 'album: ' + selection.text().split(' by')[0] + ' | ';
     } else if (selection.hasClass('artist')){
 	searchTerm = 'artist: ' + selection.text() + ' | '
     }
-    $('#song-search').get(0).value = searchTerm;
+    prev = $('#song-search').get(0).value.split('|').slice(0,-1).join('|');
+    if (prev){prev += '| ';}
+    $('#song-search').get(0).value = prev + searchTerm;
     sendQuery(searchTerm);
+    return false;
 }
 
 function refreshResults(results){
@@ -477,4 +484,10 @@ function moveBars(movements, deletions, additions, finalSort){
 	deletable('.music-bar');
     }
     settle_once_done();
+}
+
+
+function fillScreen(){
+    main = $('#main');
+    main.height($(window).height() - main.offset().top - $('#uploadbox').height() - 32)
 }

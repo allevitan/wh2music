@@ -77,6 +77,7 @@ def append_song_to_playlist(song):
     if not playlist and not current:
         path = get_path_from_song(song)
         player.loadfile(path)
+        song.plays += 1
         current = song.id
         sleeper = start_sleeper(song.length)
     else:
@@ -101,7 +102,6 @@ def next_song():
     try:
         current = playlist.pop(0)
         song = Song.query.filter_by(id=current).first()
-        print song.plays
         song.plays += 1
         path = get_path_from_song(song)
         player.loadfile(path)
