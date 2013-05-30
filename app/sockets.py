@@ -35,6 +35,12 @@ class UpdateNamespace(BaseNamespace):
         music.play()
         self.broadcast('play')
     
+    def on_volume(self, data):
+        print data
+        step = (5 if data == 'up' else -5)
+        volume = music.change_volume(step)
+        self.broadcast('volume', volume)
+    
     def on_next(self):
         next_song()
     
@@ -88,7 +94,26 @@ class UpdateNamespace(BaseNamespace):
             albums = Album.query.filter(Album.title.ilike('%%%s%%' %data['query'])).limit(3).all()
             albums = [(album.id, album.title, album.artist.name) for album  in albums]
             response['albums'] = albums
+
+        if data['what'] == 'song_by_artist':
+            artist = data.get('artist','').strip(' ')
+            songs = Song.query.join(Artist).filter(Artist.name.ilike(artist))\
+                        .filter(Song.title.ilike('%%%s%%' %data['query']))
+            exclusion = Song.query.filter(Song.id.in_(playlist))
+            songs = songs.except_(exclusion).order_by(Song.plays.desc()).all()
+            songs = [(song.id, song.title, song.artist.name) for song in songs]
+            print songs
+            response['songs'] = songs
         
+        if data['what'] == 'song_by_album':
+            album = data.get('album','').strip(' ')
+            songs = Song.query.join(Album).filter(Album.title.ilike(album))\
+                        .filter(Song.title.ilike('%%%s%%' %data['query']))
+            exclusion = Song.query.filter(Song.id.in_(playlist))
+            songs = songs.except_(exclusion).order_by(Song.plays.desc()).all()
+            songs = [(song.id, song.title, song.artist.name) for song in songs]
+            response['songs'] = songs
+        print response
         self.emit('search_results', response)
     
     #Broadcast to all sockets on this channel

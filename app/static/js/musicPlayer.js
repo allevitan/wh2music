@@ -62,6 +62,7 @@ $(document).ready(function(){
     sortable('.music-bar', '#playlist');
     deletable('.music-bar');
     searchable('#song-search');
+    $(document).on('keydown', volumize);
     window.socket = io.connect('/updates/');
     socket.on('update', function(data) {
 	updatePlaylist(data);
@@ -85,11 +86,23 @@ $(document).ready(function(){
     socket.on('pause', function(){
 	stopTiming();
     });
+    socket.on('volume', function(data){
+	console.log(data);
+    });
     $("#music-player #next").click(function(){
 	socket.emit('next');
     });
     startTiming('#time');
 });
+
+function volumize(keyEvent){
+    if (keyEvent.which==190 && keyEvent.ctrlKey && keyEvent.shiftKey){
+	socket.emit('volume', 'up');
+    } else if (keyEvent.which==188 && keyEvent.ctrlKey && keyEvent.shiftKey){
+	socket.emit('volume', 'down');
+    } else {return true;}
+    return false;
+}
 
 function startTiming(timeable){
     playing = true;
@@ -148,7 +161,7 @@ function searchable(searchable){
 	query = query.slice(0,start)
 	    + String.fromCharCode(key)
 	    + query.slice(start);
-	socket.emit('match', {what:'all', query:query});
+	sendQuery(query);
     });
     $(searchable).on('keydown', function(e){
 	var key = e.which;
@@ -198,14 +211,34 @@ function searchable(searchable){
 		    + query.slice(end + 1);
 	    }
 	}
-	socket.emit('match', {what:'all', query:query});	
+	sendQuery(query);
     });
+}
+
+function sendQuery(query){
+    var artist_reg = /artist:[^\|]*/i
+    var artist_match = artist_reg.exec(query)
+    var album_reg = /album:[^\|]*/i
+    var album_match = album_reg.exec(query)
+    if (artist_match){
+	var artist = artist_match[0].split(':').slice(1).join(':')
+	var query = query.replace(artist_reg, '').replace(/\|\s*/,'')
+	socket.emit('match', {what:'song_by_artist', query:query, artist:artist});
+    }
+    if (album_match){
+	var album = album_match[0].split(':').slice(1).join(':')
+	var query = query.replace(album_reg, '').replace(/\|\s*/,'')
+	socket.emit('match', {what:'song_by_album', query:query, album:album});
+    }
+    if (!(artist_match || album_match)) {
+	socket.emit('match', {what:'all', query:query});
+    }
 }
 
 function selectable(selectable){
     selectable.on('mouseenter', function(){
 	selectable.removeClass('selected');
-	$(this).addClass('selected');    
+	$(this).addClass('selected');
     });
     $(document).on('click', function(){
 	$('#results').removeClass('open')
@@ -254,29 +287,38 @@ function sortable(sortableClass, sortBox){
 }
 
 function sendSelection(selection){
-    if (!selection.hasClass('back'))
+    if (selection.hasClass('song')){
 	socket.emit('add',{who:parseInt(selection.attr('pk'))});
-    $('#results').empty().removeClass('open')
-    $('#song-search').get(0).value = '';
+	$('#results').empty().removeClass('open')
+	$('#song-search').get(0).value = '';
+	return
+    } else if (selection.hasClass('album')){
+	searchTerm = 'album: ' + selection.text().split(' by')[0] + ' | ';
+    } else if (selection.hasClass('artist')){
+	searchTerm = 'artist: ' + selection.text() + ' | '
+    }
+    $('#song-search').get(0).value = searchTerm;
+    sendQuery(searchTerm);
 }
 
 function refreshResults(results){
-    selected = $('#results .selected').attr('pk');
-    box = $('#results').empty();
-    if (results.songs.length)
+    var select_match = $('#results .selected');
+    var select_match = [select_match.attr('pk'), select_match.text()];
+    var box = $('#results').empty();
+    if (results.songs && results.songs.length)
 	box.append('<li class="break">Songs</li>');
     for (i in results.songs){
 	box.append('<li class="song" pk="' + results.songs[i][0] + '">' + 
 		   results.songs[i][1] + ' <small>by</small> ' +
 		   results.songs[i][2] + '</li>');
     }
-    if (results.artists.length)
+    if (results.artists && results.artists.length)
 	box.append('<li class="break">Artists</li>');
     for (i in results.artists){
 	box.append('<li class="artist" pk="' + results.artists[i][0] + '">' + 
 		   results.artists[i][1] + '</li>');
     }
-    if (results.albums.length)
+    if (results.albums && results.albums.length)
 	box.append('<li class="break">Albums</li>');
     for (i in results.albums){
 	box.append('<li class="album" pk="' + results.albums[i][0] + '">' + 
@@ -284,7 +326,12 @@ function refreshResults(results){
 		   results.albums[i][2] + '</li>');
     }
     box.append('<li class="back">Back to Playlist</li>')
-    selected = $('#results').children('[pk="' + selected + '"]').first()
+    selected = $('#results').children('[pk="' + select_match[0] + '"]')
+    if (selected.length){
+	selected = selected.filter(function(){
+	    return $(this).text() == select_match[1];
+	});
+    }
     if (!selected.length){
 	selected = $($('#results').children(':not(.break)').get(0));
     }

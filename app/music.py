@@ -127,6 +127,15 @@ def play():
         sleeper = start_sleeper(player.length - player.time_pos)
         player.pause()
 
+def change_volume(step):
+    cur_volume = player.volume
+    if cur_volume == None: return
+    volume = cur_volume + step
+    if volume > 100: volume = 100
+    if volume < 0: volume = 0
+    player.volume = volume
+    return volume
+
 def sleep(sleep, action):
     gevent.sleep(sleep)
     action()

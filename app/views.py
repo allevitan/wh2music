@@ -21,6 +21,10 @@ def home():
     return render_template('home.html', form=form, current=current,
                            playlist=playlist, played=music.get_time())
 
+@app.route('/instructions/')
+def instructions():
+    return render_template('instructions.html')
+
 @app.route('/music/<filename>')
 def get_song(filename):
     return send_from_directory(app.config['MUSIC_DIR'], filename)
