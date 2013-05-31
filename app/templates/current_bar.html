@@ -1,32 +1,33 @@
 {% if current %}
 <div id="current" pk="{{current.id}}">
-  <h3 id="current-bar">
+  <h1 id="current-bar">
     <span class="title">{{current.title}}</span>
     <span class="artist">{{current.artist.name}}</span>
-    <span class="album">{{current.album.title}}</span>
-  </h3>
-  <div id="time">
-    {% if played %}
-    <span id="min">{{'%d'|format(played/60)}}</span>:<span id="sec">{{'%02d'|format(played%60)}}</span>
-    {% else %}
-    <span id="min">0</span>:<span id="sec">00</span>
-    {% endif %}
-    / <span id="final">{{'%d'|format(current.length / 60)}}:{{'%02d'|format(current.length%60)}}</span>
-  </div>
+    <!--<span class="album">{{current.album.title}}</span>-->
+  </h1>
+</div>
+<div id="time">
+  {% if played %}
+  <span id="min">{{'%d'|format(played/60)}}</span>:<span id="sec">{{'%02d'|format(played%60)}}</span>
+  {% else %}
+  <span id="min">0</span>:<span id="sec">00</span>
+  {% endif %}
+  / <span id="final">{{'%d'|format(current.length / 60)}}:{{'%02d'|format(current.length%60)}}</span>
 </div>
 {% else %}
 <div id="current">
-  <h3 id="current-bar">
+  <h1 id="current-bar">
     <span class="title">{{silence[0]}}</span>
     <span class="artist">{{silence[1]}}</span>
     <script>
       setTimeout(function(){socket.emit('current_request')},
       {{silent_left * 1000}});
     </script>
-  </h3>
-  <div id="time">
-    <span id="min">{{'%d'|format(silent_played/60)}}</span>:<span id="sec">{{'%02d'|format(silent_played%60)}}</span>
-    / <span id="final">{{'%d'|format(silence[2]/ 60)}}:{{'%02d'|format(silence[2]%60)}}</span>
-  </div>
+  </h1>
+</div>
+<div id="time">
+  <span id="min">{{'%d'|format(silent_played/60)}}</span>:<span id="sec">{{'%02d'|format(silent_played%60)}}</span>
+  / <span id="final">{{'%d'|format(silence[2]/ 60)}}:{{'%02d'|format(silence[2]%60)}}</span>
 </div>
 {% endif %}
+

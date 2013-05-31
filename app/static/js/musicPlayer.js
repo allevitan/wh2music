@@ -92,7 +92,7 @@ $(document).ready(function(){
     socket.on('volume', function(data){
 	console.log(data);
     });
-    $("#music-player #next").click(function(){
+    $("#next").click(function(){
 	socket.emit('next');
     });
     startTiming('#time');
@@ -109,7 +109,7 @@ function volumize(keyEvent){
 
 function startTiming(timeable){
     playing = true;
-    $("#music-player #pause").off('click').click(function(){
+    $("#pause").off('click').click(function(){
 	socket.emit('pause');
     });
     timing = setInterval(function(){
@@ -124,7 +124,7 @@ function startTiming(timeable){
 
 function stopTiming(){
     playing = false;
-    $("#music-player #pause").off('click').click(function(){
+    $("#pause").off('click').click(function(){
 	socket.emit('play');
     });
     clearInterval(timing);
@@ -293,9 +293,13 @@ function sortable(sortableClass, sortBox){
 function sendSelection(selection){
     if (selection.hasClass('song')){
 	socket.emit('add',{who:parseInt(selection.attr('pk'))});
-	$('#results').empty().removeClass('open')
+	$('#results').empty().removeClass('open');
 	$('#song-search').get(0).value = '';
-	return true
+	return true;
+    } else if (selection.hasClass('back')){
+	$('#results').empty().removeClass('open');
+	$('#song-search').get(0).value = '';
+	return false;
     } else if (selection.hasClass('album')){
 	searchTerm = 'album: ' + selection.text().split(' by')[0] + ' | ';
     } else if (selection.hasClass('artist')){
@@ -395,6 +399,7 @@ function updatePlaylist(data){
 }
 
 function updateCurrent(html){
+    $('#time').remove();
     $('#current').animate({opacity:0}, {
 	duration: 250,
 	complete: function(){

@@ -1,18 +1,4 @@
 <div id="music-player">
-  <div id="player">
-    <div id="controls">
-      <span id="back">
-	{% include 'icons/first.svg' %}
-      </span>
-      <span id="pause">
-	{% include 'icons/play.svg' %}
-      </span>
-      <span id="next">
-	{% include 'icons/last.svg' %}
-      </span>
-    </div>
-    {% include 'current_bar.html' %}
-  </div>
   <form onSubmit="return false;">
     <input type="text" id="song-search" placeholder="Add a song to the playlist!"></input>
   </form>

@@ -14,20 +14,19 @@
   <script src="/static/js/vendor/custom.modernizr.js"></script>
 </head>
 <body>
-  <nav class="top-bar" style>
-    <ul class="title-area">
-      <li class="name">
-	<h1><a href="/">WH2Music</a></h1>
-      </li>
-      <li class="toggle-topbar menu-icon">
-	<a href="#"><span>Menu</span></a>
-      </li>
-    </ul>
-    <section class="top-bar-section">
-      <ul class="right">
-	<li><a href="/instructions/">Instructions</a></li>
-      </ul>
-    </section>
+  <nav class="top-bar row">
+    <div class="name">
+      <h1 style="float:left;"><a href="/">WH2<small>playing</small></a></h1>
+      {% include 'current_bar.html' %}
+      <div id="controls">
+	<span id="pause">
+	  {% include 'icons/play.svg' %}
+	</span>
+	<span id="next">
+	  {% include 'icons/last.svg' %}
+	</span>
+      </div>
+    </div>
   </nav>
   <div class="row">
     <div class="large-12 columns">

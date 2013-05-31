@@ -19,17 +19,12 @@
     float:left;
 }*/
 
-#music-player h1{
-    padding-top:0px;
-    margin-top:0px;
-}
 form {
     position: relative;
 }
 
 #song-search {
-    position:relative;
-    z-index:4;
+    margin-top:-10px;
 }
 
 ul.options {
@@ -69,27 +64,24 @@ ul.options li.selected {
     display:block;
 }
 
-#player {
-    background-color:#E3E3E3;
-    height:85px;
-    position:relative;
-    margin-bottom:15px;
-}
-
 #controls {
     position:absolute;
-    right:0px;
-    padding-right:10px;
-    padding-left:10px;
-    top:0px;
-    margin-top:10px;
     background-color:inherit;
-    z-index:5;
+    right:0px;
+    top:0px;
+    padding-left:5px;
+    padding-right:5px;
+    height:30px;
+    z-index:10;
+}
+
+#controls>li {
+    display:inline-block;
 }
 
 #controls svg{
-    height:50px !important;
-    width:50px !important;
+    height:20px !important;
+    width:20px !important;
 }
 
 #controls svg *{
@@ -106,22 +98,25 @@ ul.options li.selected {
 
 #time {
     position:absolute;
-    bottom:0px;
-    right:3px;
-    z-index:10;
+    bottom:-15px;
+    right:5px;
+    color:#fff;
+    font-size:0.7em;
 }
 
-#current-bar *{
-    overflow:hidden;
-    text-overflow:hidden;
-    white-space:nowrap;
-    width:100%;
-    padding-left:10px;
+#current {
+    float:left;
+    display:inline-block;
 }
 
-#current-bar .title{
+#current-bar {
     position:absolute;
-    top:0px;
+    left:100px;
+    right:60px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:#fff;
 }
 
 #current-bar .artist:before{
@@ -130,22 +125,11 @@ ul.options li.selected {
     font-size:0.7em;
 }
 
-#current-bar .artist{
-    position:absolute;
-    top:28px;
-}
-
 #current-bar .album:before{
     content:'on ';
     color:#707070;
     font-size:0.7em;
 }
-
-#current-bar .album{
-    position:absolute;
-    top:56px;
-}
-
 
 .well {
     position:relative;
