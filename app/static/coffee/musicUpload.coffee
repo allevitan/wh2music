@@ -1,4 +1,5 @@
-function sendAndConfirm(where){
+`
+window.sendAndConfirm = function(where){
     var data = new FormData($('.post-song')[0]);
     initializeSlider();
     $.ajax({
@@ -14,6 +15,7 @@ function sendAndConfirm(where){
 	    }
 	    return progressXhr
 	},
+        error: function(xhr, type, e){console.log(e);e.preventDefault();return false;},
 	success: function(data){
 	    $('#upload').remove()
 	    $('#uploads').removeClass('hide');
@@ -36,7 +38,7 @@ function updateProgress(complete){
     $('#upload > #slider').css('width', complete + '%');
 }
 
-function sendConfirmData(where){
+window.sendConfirmData = function(where){
     var data = new FormData($('.post-song')[0]);
     $.ajax({
 	type: 'POST',
@@ -52,3 +54,4 @@ function sendConfirmData(where){
 	processData: false
     });
 }    
+`
