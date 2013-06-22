@@ -1,3 +1,6 @@
+#This file contains a layer of abstraction on top of mplayer.py that
+#lets it work nicely with the playlist stored in the cache.
+
 from app import app, cache, player, metaplayer, db, sleeper
 from werkzeug import secure_filename
 from os.path import join
@@ -7,6 +10,11 @@ import sockets
 import gevent
 
 def get_metadata(filename_list, orig_filenames=None):
+    """
+    Gets the metadata from id3 tags in a list of mp3 file paths.
+    if orig_filnames (a list of original filenames) is passed,
+    it will try to extract a track number and title from them as
+    a fallback."""
     mdatas = []
     tags = (('title','Title'),
             ('artist','Artist'),
@@ -42,6 +50,7 @@ def get_metadata(filename_list, orig_filenames=None):
     return mdatas
 
 def guess_song_title(filename):
+    """ Tries to pull out the title and track number."""
     first_pass = ' '.join(filename.split('.')[:-1]).replace('_',' ')
     try:
         track_num = int(first_pass.split(' ')[0])
@@ -52,6 +61,9 @@ def guess_song_title(filename):
     return track_num, title
 
 def guess_album_and_artist(metadatas):
+    """
+    Get the most common album and artist from a list of
+    possibly incomplete metadata objects."""
     albums, artists = {}, {}
     for metadata in metadatas:
         album = metadata.get('album','')
@@ -65,6 +77,7 @@ def guess_album_and_artist(metadatas):
     return album, artist
 
 def get_path_from_song(song):
+    """Retrieve the stored location of a song from it's database model."""
     path = join(app.config['MUSIC_DIR'],
                 secure_filename(song.artist.name),
                 secure_filename(song.album.title),
@@ -72,6 +85,7 @@ def get_path_from_song(song):
     return path
 
 def append_song_to_playlist(song):
+    """Append a song to the playlist and play it if the playlist is empty."""
     global sleeper
     current, playlist = get_playlist()
     if not playlist and not current:
@@ -87,6 +101,7 @@ def append_song_to_playlist(song):
     return current, playlist
 
 def get_playlist():
+    """Get the primary keys of the songs in the current playlist"""
     current = cache.get('current')
     playlist = cache.get('playlist')
     if playlist == None:
@@ -96,6 +111,7 @@ def get_playlist():
     return current, playlist
 
 def next_song():
+    """Start the next song playing and update the playlist."""
     global sleeper
     old_sleeper = sleeper
     current, playlist = get_playlist()
@@ -117,17 +133,20 @@ def next_song():
 
 
 def pause():
+    """Pause the playlist if playing."""
     if not player.paused:
         sleeper.kill()
         player.pause()
 
 def play():
+    """Play the music if currently paused."""
     global sleeper
     if player.paused:
         sleeper = start_sleeper(player.length - player.time_pos)
         player.pause()
 
 def change_volume(step):
+    """Change the player's volume by the specified step."""
     cur_volume = player.volume
     if cur_volume == None: return
     volume = cur_volume + step
@@ -136,14 +155,19 @@ def change_volume(step):
     player.volume = volume
     return volume
 
-def sleep(sleep, action):
-    gevent.sleep(sleep)
-    action()
-    
 def get_time():
+    """gets mplayer's position in the current song"""
     return player.time_pos
 
 def start_sleeper(length):
+    """
+    Starts a new greenlet that will wait for the specified time
+    and then start the next song. Used for playlist management."""
     return gevent.spawn(sleep, length, next_song)
 
-
+def sleep(sleep, action):
+    """
+    Wait the specified time in the current greenlet, then run the
+    specified action."""
+    gevent.sleep(sleep)
+    action()

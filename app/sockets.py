@@ -1,3 +1,6 @@
+#Does all the hard work of communicating with the frontend
+#and dealing with it's input.
+
 from app import app, cache, console
 from flask import request, Response, render_template
 from socketio import socketio_manage
@@ -7,19 +10,27 @@ import music
 from models import Song, Artist, Album
 
 class UpdateNamespace(BaseNamespace):
+    """
+    The namespace that deals with updates from the app's frontend.
+    It keeps a list of connected sockets so it can broadcast updates
+    to the playlist.
+    Currently the only namespace."""
     sockets = {}
     
     def recv_connect(self):
+        """Connect up a new client"""
         #print "Got a socket connection!"
         self.sockets[id(self)] = self
     
     def disconnect(self, *args, **kwargs):
+        """Disconnect a client"""
         #print "A socket disconnected!"
         if id(self) in self.sockets:
             del self.sockets[id(self)]
         super(UpdateNamespace, self).disconnect(*args, **kwargs)
 
     def on_move(self, data):
+        """Move a song around in the playlist."""
         current, playlist = get_playlist()
         to = data['to']
         playlist.insert(int(data['to']),
@@ -45,12 +56,14 @@ class UpdateNamespace(BaseNamespace):
         next_song()
     
     def on_delete(self, data):
+        """Deletes a song from the playlist."""
         current, playlist = get_playlist()
         playlist.pop(playlist.index(int(data['who'])))
         cache.set('playlist', playlist)
         self.broadcast('update', {'current':current, 'playlist':playlist})
         
     def on_add(self, data):
+        """Adds a new song to the playlist by primary key"""
         current, playlist = get_playlist()
         if int(data['who']) not in playlist + [current]:
             current, playlist = music.append_song_to_playlist(Song.query.filter_by(id=int(data['who'])).first())
@@ -59,6 +72,9 @@ class UpdateNamespace(BaseNamespace):
             self.emit('error', 'That song is already on the playlist!')
 
     def on_current_request(self):
+        """
+        Returns the html for the current song, ready to plop into
+        the music player."""
         current, playlist = get_playlist()
         current = Song.query.filter_by(id=current).first()
         sketchy_ctx = app.test_request_context()
@@ -67,6 +83,7 @@ class UpdateNamespace(BaseNamespace):
         sketchy_ctx.pop()
     
     def on_song_request(self, pk):
+        """Returns the html for a song, ready to go into a playlist"""
         song = Song.query.filter_by(id=pk).first()
         sketchy_ctx = app.test_request_context()
         sketchy_ctx.push()
@@ -74,6 +91,7 @@ class UpdateNamespace(BaseNamespace):
         sketchy_ctx.pop()
 
     def on_match(self, data):
+        """Looks for a match for a given search request."""
         current, playlist = get_playlist()
         playlist.append(current)
         response = {}
@@ -123,6 +141,7 @@ class UpdateNamespace(BaseNamespace):
     #Broadcast to all sockets on this channel
     @classmethod
     def broadcast(self, event, *args):
+        """broadcasts an event to everybody who's connected"""
         for ws in self.sockets.values():
             ws.emit(event, *args)
 
