@@ -42,6 +42,8 @@
   updateProgress = function(complete) {
     if (complete === 100) {
       $('#upload').append('<p>Processing...</p>');
+      return $('#upload > #slider').css('width', '100%');
+    } else {
       return $('#upload > #slider').css('width', complete + '%');
     }
   };

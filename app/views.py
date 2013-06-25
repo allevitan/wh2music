@@ -15,8 +15,10 @@ from gevent import monkey, sleep
 @app.route('/')
 def home():
     current, playlist = music.get_playlist()
+    print current, playlist
     playlist = [Song.query.filter_by(id=pk).first() for pk in playlist]
     current = Song.query.filter_by(id=current).first()
+    print current, playlist
     form = PostAlbumForm()
     return render_template('home.html', form=form, current=current,
                            playlist=playlist, played=music.get_time())
