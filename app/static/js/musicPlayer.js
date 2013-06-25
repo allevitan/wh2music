@@ -455,7 +455,7 @@
       ++required;
       socket.once('song_data', function(html) {
         bar = $(html).appendTo(parent);
-        if (pk % 2 === 0) {
+        if (whereTo % 2 === 0) {
           bar.addClass('greyed');
         }
         return bar.css({

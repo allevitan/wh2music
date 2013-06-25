@@ -1,3 +1,4 @@
+#Sends a song's data over to the server
 window.sendAndConfirm = (url)->
     data = new FormData $('.post-song')[0]
     initializeSlider()
@@ -22,14 +23,18 @@ window.sendAndConfirm = (url)->
         contentType: false
         processData: false
 
+#Replaces the upload buttons with an upload slider.
 initializeSlider = () ->
     $('#uploads').addClass('hide').after('<div id="upload"><div id="slider"></div></div>')
 
+#Updates the uplaod slider
 updateProgress = (complete) ->
     if complete == 100
         $('#upload').append('<p>Processing...</p>')
-        $('#upload > #slider').css('width', complete + '%')
+        $('#upload > #slider').css('width', '100%')
+    else $('#upload > #slider').css('width', complete + '%')
 
+#Sends the song metadata
 window.sendConfirmData = (url) ->
     data = new FormData $('.post-song')[0]
     $.ajax

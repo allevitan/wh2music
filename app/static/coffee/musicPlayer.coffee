@@ -1,12 +1,17 @@
 $(window).resize -> fillScreen()
 
 $(document).ready ()->
+    fillScreen()
+
+    #Get the interactivity going
     sortable '.music-bar', '#playlist'
     deletable '.music-bar'
     searchable '#song-search'
-    fillScreen()
+    
     $(document).on 'keydown', volumize
     window.socket = io.connect '/updates/'
+    
+    #Handle all the push communications from the server
     socket.on 'update', (data)-> updatePlaylist data
     socket.on 'current_data', (html)-> updateCurrent html
     socket.on 'search_results', (results)-> refreshResults results
@@ -21,12 +26,14 @@ $(document).ready ()->
     startTiming '#time'
 
 
+#sets up the volume up and down hotkeys
 volumize = (keyEvent)->
     if keyEvent.ctrlKey and keyEvent.shiftKey and keyEvent.which==190
         socket.emit 'volume', 'up'
     else if keyEvent.ctrlKey and keyEvent.shiftKey and keyEvent.which==188
         socket.emit 'volume', 'down'
 
+#Start the music playback timer running
 startTiming = (timeable)->
     window.playing = true
     $("#pause").off('click').click ()-> socket.emit 'pause'
@@ -38,23 +45,27 @@ startTiming = (timeable)->
         updateTime timeable, time
     , 1000
 
+#Stops the music playback timer
 stopTiming = ->
     window.playing = false
     $("#pause").off('click').click ->
         socket.emit 'play'
     clearInterval window.timing
 
+#Sets the value in the music timer based on a time in seconds
 updateTime = (timeable, time)->
     $(timeable).children('#min').text Math.floor(time/60)
     sec = time % 60
     sec = '0' + sec if sec < 10 
     $(timeable).children('#sec').text sec
 
+#Takes a set of things that should be deletable, and makes it so
 deletable = (deletable)->
     $(deletable + ' .del-button').off('mousedown').mousedown (e)->
         socket.emit 'delete', who:$(this).parent().attr 'pk'
         e.stopPropagation()
 
+#Takes the search box and sets it up to work with results.
 searchable = (searchable)->
     $('#results').click -> $(searchable).focus()
     $(searchable).click ->
@@ -104,6 +115,8 @@ searchable = (searchable)->
         sendQuery query
     
 
+#Takes the stuff in the search box, formats a search request, and
+# #Sends it to the server.
 sendQuery = (query)->
     artist_reg = /artist:[^\|]*/i
     artist_match = artist_reg.exec query
@@ -120,7 +133,7 @@ sendQuery = (query)->
     if not (artist_match or album_match)
         socket.emit 'match', {what:'all', query:query}
 
-
+#Takes the results pane and makes it selectable with the mouse
 selectable = (selectable)->
     selectable.on 'mouseenter', ->
         selectable.removeClass 'selected'
@@ -130,7 +143,8 @@ selectable = (selectable)->
         me = $('#results .selected')
         sendSelection me if me
 
-
+# Takes the class of a set of click-and-drag sortable objects,
+# and makes it so
 sortable = (sortableClass, sortBox)->
     $(sortableClass).off('mousedown').mousedown (e)->
         me = $(this)
@@ -162,7 +176,7 @@ sortable = (sortableClass, sortBox)->
             $(document).unbind 'mouseup'
             socket.emit 'move', {from: me.attr('pk'), to: me.attr('pos')}
 
-
+# Sends a selected item from the results pane to the server
 sendSelection = (selection) ->
     if selection.hasClass 'song'
         socket.emit 'add', who: parseInt(selection.attr 'pk')
@@ -184,7 +198,8 @@ sendSelection = (selection) ->
     sendQuery searchTerm
     return false
 
-
+# Refreshes the results pane from an object containing songs,
+# albums, and artists
 refreshResults = (results)->
     select_match = $('#results .selected');
     select_match = [select_match.attr 'pk', select_match.text()]
@@ -218,7 +233,7 @@ refreshResults = (results)->
     selectable $('#results').children(':not(.break)')
 
 
-
+#Updates the playlist from an up-to-date copy from the server
 updatePlaylist = (data)->
 
     #Check if necessary and the send a request for a new current_bar
@@ -245,7 +260,7 @@ updatePlaylist = (data)->
 
     moveBars movements, deletions, additions, finalSort
 
-
+# Updates the currently playing song with a snippet of html
 updateCurrent =(html)->
     $('#time').remove()
     $('#current').animate {opacity:0},
@@ -254,7 +269,7 @@ updateCurrent =(html)->
             $(this).replaceWith html 
             $('#current').css(opacity:0).animate {opacity:1}, 250
 
-
+# Does the hard work of animating the moving playlist bars
 moveBars = (movements, deletions, additions, finalSort)->
     time = 400
     parent = $ '#playlist'
@@ -293,7 +308,7 @@ moveBars = (movements, deletions, additions, finalSort)->
         ++required
         socket.once 'song_data', (html)->
             bar = $(html).appendTo parent
-            if pk%2 is 0
+            if whereTo%2 is 0
                 bar.addClass 'greyed'
             bar.css(opacity:0).animate
                 opacity:1
@@ -328,7 +343,7 @@ moveBars = (movements, deletions, additions, finalSort)->
     settle_once_done()
 
 
-
+#Stretches the playlist area to fill the screen.
 fillScreen = ->
     main = $ '#main'
     main.height $(window).height() - main.offset().top - $('#uploadbox').height() - 32
