@@ -51,10 +51,9 @@ silent_songs = [
 
 total_length = sum([silent_song[2] for silent_song in silent_songs])
 
-    
-
 @app.context_processor
 def silence():
+    """deterministically pick a silent song to be "playing"."""
     time_since_reset = time()%total_length
     i = -1
     while time_since_reset > 0:
@@ -67,4 +66,5 @@ def silence():
 
 @app.context_processor
 def console():
+    """gives access to server-side printing while templates are rendering"""
     return {'console': c}

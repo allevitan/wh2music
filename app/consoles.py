@@ -1,3 +1,5 @@
+#For shits and giggles, for those times I type console.log
+
 from __future__ import print_function
 import sys
 import inspect
